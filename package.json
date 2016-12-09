@@ -1,0 +1,12 @@
+{
+  "name": "ludum-dare-37",
+  "version": "0.0.1",
+  "dependencies": {
+    "nodemon": "^1.11.0",
+    "tap": "^8.0.1"
+  },
+  "scripts": {
+    "test": "tap ./src/**/*.test.js",
+    "test:watch": "nodemon -e js --exec \"npm test\""
+  }
+}
