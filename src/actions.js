@@ -1,12 +1,41 @@
+const isRequired = require('./isRequired')
 const {reducerTypes} = require('./reducers')
 
-const playerMove = ({direction = null} = {}) => {
+const mobMove = ({
+  direction = null,
+  id = isRequired({
+    category: 'mobMove',
+    property: 'id'
+  })
+} = {}) => {
   return {
+    id,
     direction,
-    type: reducerTypes.PLAYER_MOVE
+    type: reducerTypes.MOB_MOVE
+  }
+}
+
+const mobIdle = ({
+  id = isRequired({
+    category: 'mobIdle',
+    property: 'id'
+  })
+} = {}) => {
+  return {
+    id,
+    type: reducerTypes.MOB_IDLE
+  }
+}
+
+const mobsUpdate = ({timePassed = 0} = {}) => {
+  return {
+    timePassed,
+    type: reducerTypes.MOBS_UPDATE
   }
 }
 
 module.exports = {
-  playerMove
+  mobMove,
+  mobIdle,
+  mobsUpdate
 }

@@ -1,10 +1,11 @@
-const mobPrototype = {}
-
 const createMob = ({x = 0, y = 0} = {}) => {
-  const mob = Object.create(mobPrototype)
-  mob.position = {x, y}
-
-  return mob
+  return {
+    id: Math.random().toString(32).substring(2),
+    position: {x, y},
+    active: false,
+    remainingSteps: 0,
+    direction: null
+  }
 }
 
 module.exports = createMob

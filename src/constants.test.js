@@ -3,8 +3,8 @@ const constants = require('./constants')
 
 tap.test('constants', test => {
   test.equal(constants.TILE_SIZE, 32, 'Tile size is 32')
-  test.equal(constants.WORLD_WIDTH, 15, 'World width is 15')
-  test.equal(constants.WORLD_HEIGHT, 11, 'World height is 11')
+  test.equal(typeof constants.WORLD_WIDTH, 'number', 'World width is set')
+  test.equal(typeof constants.WORLD_HEIGHT, 'number', 'World height is set')
 
   test.equal(constants.KEY_LEFT, 37)
   test.equal(constants.KEY_RIGHT, 39)
@@ -14,6 +14,13 @@ tap.test('constants', test => {
   test.equal(constants.KEY_TWO, 50)
   test.equal(constants.KEY_THREE, 51)
   test.equal(constants.KEY_FOUR, 52)
+
+  test.equal(constants.NORTH, 'NORTH')
+  test.equal(constants.SOUTH, 'SOUTH')
+  test.equal(constants.EAST, 'EAST')
+  test.equal(constants.WEST, 'WEST')
+
+  test.equal(typeof constants.MOB_MOVE_STEPS, 'number')
 
   test.end()
 })

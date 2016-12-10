@@ -1,5 +1,6 @@
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
+const {mobsUpdate} = require('./actions')
 
 const expect = property => isRequired({
   property,
@@ -10,10 +11,8 @@ const createUpdate = ({
   canvas = expect('canvas'),
   ctx = expect('ctx')
 } = {}) => {
-  const state = dataStore.getState()
-  console.log(state)
-
-  return (time) => {
+  return timePassed => {
+    dataStore.dispatch(mobsUpdate({timePassed}))
   }
 }
 

@@ -18,7 +18,15 @@ const init = () => {
 
   game({canvas, ctx, dataStore})
   document.body.appendChild(canvas)
-  input.start()
+
+  const state = dataStore.getState()
+  input.start(state.mobs[0].id)
+
+  /*
+  dataStore.subscribe(() => {
+    console.log(JSON.stringify(dataStore.getState()))
+  })
+  */
 }
 
 window.addEventListener('DOMContentLoaded', init)

@@ -9,7 +9,12 @@ const constants = {
   KEY_ONE: 49,
   KEY_TWO: 50,
   KEY_THREE: 51,
-  KEY_FOUR: 52
+  KEY_FOUR: 52,
+  NORTH: 'NORTH',
+  SOUTH: 'SOUTH',
+  EAST: 'EAST',
+  WEST: 'WEST',
+  MOB_MOVE_STEPS: 500
 }
 
 module.exports = constants

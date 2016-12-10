@@ -71,6 +71,49 @@ var loop = (function () {
 module.exports = loop;
 },{}],2:[function(require,module,exports){
 const isRequired = require('./isRequired')
+const {reducerTypes} = require('./reducers')
+
+const mobMove = ({
+  direction = null,
+  id = isRequired({
+    category: 'mobMove',
+    property: 'id'
+  })
+} = {}) => {
+  return {
+    id,
+    direction,
+    type: reducerTypes.MOB_MOVE
+  }
+}
+
+const mobIdle = ({
+  id = isRequired({
+    category: 'mobIdle',
+    property: 'id'
+  })
+} = {}) => {
+  return {
+    id,
+    type: reducerTypes.MOB_IDLE
+  }
+}
+
+const mobsUpdate = ({timePassed = 0} = {}) => {
+  return {
+    timePassed,
+    type: reducerTypes.MOBS_UPDATE
+  }
+}
+
+module.exports = {
+  mobMove,
+  mobIdle,
+  mobsUpdate
+}
+
+},{"./isRequired":9,"./reducers":11}],3:[function(require,module,exports){
+const isRequired = require('./isRequired')
 
 const createBus = ({
   reducers = isRequired({
@@ -122,7 +165,7 @@ module.exports = {
   createBus
 }
 
-},{"./isRequired":8}],3:[function(require,module,exports){
+},{"./isRequired":9}],4:[function(require,module,exports){
 const constants = {
   TILE_SIZE: 32,
   WORLD_WIDTH: 15,
@@ -134,12 +177,17 @@ const constants = {
   KEY_ONE: 49,
   KEY_TWO: 50,
   KEY_THREE: 51,
-  KEY_FOUR: 52
+  KEY_FOUR: 52,
+  NORTH: 'NORTH',
+  SOUTH: 'SOUTH',
+  EAST: 'EAST',
+  WEST: 'WEST',
+  MOB_MOVE_STEPS: 500
 }
 
 module.exports = constants
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
 const mob = require('./mob')
@@ -160,7 +208,7 @@ const defaultState = {
 
 module.exports = createBus({reducers, defaultState})
 
-},{"./bus":2,"./constants":3,"./mob":9,"./reducers":10}],5:[function(require,module,exports){
+},{"./bus":3,"./constants":4,"./mob":10,"./reducers":11}],6:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const loop = require('lb-loop')
 const {createUpdate} = require('./update')
@@ -188,7 +236,7 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":8,"./render":11,"./update":12,"lb-loop":1}],6:[function(require,module,exports){
+},{"./isRequired":9,"./render":12,"./update":13,"lb-loop":1}],7:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
 const input = require('./input')
@@ -209,19 +257,77 @@ const init = () => {
 
   game({canvas, ctx, dataStore})
   document.body.appendChild(canvas)
-  input.start()
+
+  const state = dataStore.getState()
+  input.start(state.mobs[0].id)
+
+  /*
+  dataStore.subscribe(() => {
+    console.log(JSON.stringify(dataStore.getState()))
+  })
+  */
 }
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./constants":3,"./dataStore":4,"./game":5,"./input":7}],7:[function(require,module,exports){
-// TODO get keys from constants
+},{"./constants":4,"./dataStore":5,"./game":6,"./input":8}],8:[function(require,module,exports){
+let playerId = null
+
+const {
+  NORTH,
+  SOUTH,
+  EAST,
+  WEST,
+  KEY_LEFT,
+  KEY_RIGHT,
+  KEY_UP,
+  KEY_DOWN,
+  KEY_ONE,
+  KEY_TWO,
+  KEY_THREE,
+  KEY_FOUR
+} = require('./constants')
+
+const {mobMove} = require('./actions')
+const dataStore = require('./dataStore')
 
 const handleKeyDown = event => {
-  console.log('event', event.keyCode)
+  switch (event.keyCode) {
+    case KEY_LEFT:
+      dataStore.dispatch(mobMove({
+        direction: WEST,
+        id: playerId
+      }))
+      break
+    case KEY_RIGHT:
+      dataStore.dispatch(mobMove({
+        direction: EAST,
+        id: playerId
+      }))
+      break
+    case KEY_UP:
+      dataStore.dispatch(mobMove({
+        direction: NORTH,
+        id: playerId
+      }))
+      break
+    case KEY_DOWN:
+      dataStore.dispatch(mobMove({
+        direction: SOUTH,
+        id: playerId
+      }))
+      break
+    case KEY_ONE:
+    case KEY_TWO:
+    case KEY_THREE:
+    case KEY_FOUR:
+      console.log('action button pressed')
+      break
+  }
 }
 
-const start = () => {
+const start = (id) => {
+  playerId = id
   window.addEventListener('keydown', handleKeyDown)
 }
 
@@ -234,7 +340,7 @@ module.exports = {
   stop
 }
 
-},{}],8:[function(require,module,exports){
+},{"./actions":2,"./constants":4,"./dataStore":5}],9:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -243,25 +349,75 @@ const isRequired = ({category = null, property = null} = {}) => {
 
 module.exports = isRequired
 
-},{}],9:[function(require,module,exports){
-const mobPrototype = {}
-
+},{}],10:[function(require,module,exports){
 const createMob = ({x = 0, y = 0} = {}) => {
-  const mob = Object.create(mobPrototype)
-  mob.position = {x, y}
-
-  return mob
+  return {
+    id: Math.random().toString(32).substring(2),
+    position: {x, y},
+    active: false,
+    remainingSteps: 0,
+    direction: null
+  }
 }
 
 module.exports = createMob
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+const {
+  NORTH,
+  SOUTH,
+  EAST,
+  WEST,
+  MOB_MOVE_STEPS
+} = require('./constants')
+
 const reducerTypes = {
-  PLAYER_MOVE: 'PLAYER_MOVE'
+  MOBS_UPDATE: 'MOBS_UPDATE',
+  MOB_MOVE: 'MOB_MOVE'
 }
 
 const reducers = (state, action) => {
   switch (action.type) {
+    case reducerTypes.MOB_MOVE:
+      return Object.assign({}, state, {
+        mobs: state.mobs.map(mob => {
+          if (mob.id !== action.id) {
+            return mob
+          }
+
+          if (!mob.active) {
+            mob.active = true
+
+            switch (action.direction) {
+              case SOUTH: mob.position.y++; break
+              case NORTH: mob.position.y--; break
+              case EAST: mob.position.x++; break
+              case WEST: mob.position.x--; break
+            }
+
+            mob.remainingSteps = MOB_MOVE_STEPS
+            mob.direction = action.direction
+          }
+          return mob
+        })
+      })
+
+    case reducerTypes.MOBS_UPDATE:
+      return Object.assign({}, state, {
+        mobs: state.mobs.map(mob => {
+          if (mob.active) {
+            mob.remainingSteps -= action.timePassed
+          }
+
+          if (mob.remainingSteps <= 0) {
+            mob.remainingSteps = 0
+            mob.active = false
+          }
+
+          return mob
+        })
+      })
+
     default:
       return Object.assign({}, state)
   }
@@ -272,11 +428,16 @@ module.exports = {
   reducers
 }
 
-},{}],11:[function(require,module,exports){
+},{"./constants":4}],12:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
-  TILE_SIZE
+  TILE_SIZE,
+  NORTH,
+  SOUTH,
+  EAST,
+  WEST,
+  MOB_MOVE_STEPS
 } = require('./constants')
 
 const expect = property => isRequired({
@@ -288,24 +449,46 @@ const createRender = ({
   canvas = expect('canvas'),
   ctx = expect('ctx')
 } = {}) => {
-  const state = dataStore.getState()
-
-  state.world.forEach((row, y) => {
-    row.forEach((item, x) => {
-      ctx.fillStyle = `hsl(${Math.floor(Math.random() * 360)}, 50%, 50%)`
-      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-    })
-  })
-
-  state.mobs.forEach(mob => {
-    ctx.fillStyle = '#000'
-    ctx.save()
-    ctx.translate(mob.position.x * TILE_SIZE, mob.position.y * TILE_SIZE)
-    ctx.fillRect(1, 1, 30, 30)
-    ctx.restore()
-  })
-
   return () => {
+    const state = dataStore.getState()
+
+    /*
+    state.world.forEach((row, y) => {
+      row.forEach((item, x) => {
+        ctx.fillStyle = `hsl(200, 50%, 50%)`
+        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+      })
+    })
+    */
+
+    state.mobs.forEach(mob => {
+      let x = mob.position.x * TILE_SIZE
+      let y = mob.position.y * TILE_SIZE
+
+      if (mob.active && mob.remainingStops !== 0) {
+        const offset = (mob.remainingSteps / MOB_MOVE_STEPS) * TILE_SIZE
+        switch (mob.direction) {
+          case NORTH:
+            y += offset
+            break
+          case SOUTH:
+            y -= offset
+            break
+          case EAST:
+            x -= offset
+            break
+          case WEST:
+            x += offset
+            break
+        }
+      }
+
+      ctx.fillStyle = '#000'
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.fillRect(1, 1, 30, 30)
+      ctx.restore()
+    })
   }
 }
 
@@ -313,9 +496,10 @@ module.exports = {
   createRender
 }
 
-},{"./constants":3,"./dataStore":4,"./isRequired":8}],12:[function(require,module,exports){
+},{"./constants":4,"./dataStore":5,"./isRequired":9}],13:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
+const {mobsUpdate} = require('./actions')
 
 const expect = property => isRequired({
   property,
@@ -326,10 +510,8 @@ const createUpdate = ({
   canvas = expect('canvas'),
   ctx = expect('ctx')
 } = {}) => {
-  const state = dataStore.getState()
-  console.log(state)
-
-  return (time) => {
+  return timePassed => {
+    dataStore.dispatch(mobsUpdate({timePassed}))
   }
 }
 
@@ -337,4 +519,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./dataStore":4,"./isRequired":8}]},{},[6]);
+},{"./actions":2,"./dataStore":5,"./isRequired":9}]},{},[7]);
