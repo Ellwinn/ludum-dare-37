@@ -21,6 +21,9 @@ tap.test('constants', test => {
   test.equal(constants.WEST, 'WEST')
 
   test.equal(typeof constants.MOB_MOVE_STEPS, 'number')
+  test.equal(typeof constants.TILE_DISPLAY_STEPS, 'number')
+
+  test.equal(typeof constants.VIEW_RANGE, 'number')
 
   test.end()
 })

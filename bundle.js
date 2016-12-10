@@ -201,7 +201,9 @@ const constants = {
   SOUTH: 'SOUTH',
   EAST: 'EAST',
   WEST: 'WEST',
-  MOB_MOVE_STEPS: 500
+  MOB_MOVE_STEPS: 500,
+  TILE_DISPLAY_STEPS: 1000,
+  VIEW_RANGE: 5
 }
 
 module.exports = constants
@@ -255,15 +257,20 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":9,"./render":12,"./update":13,"lb-loop":1}],7:[function(require,module,exports){
+},{"./isRequired":9,"./render":12,"./update":14,"lb-loop":1}],7:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
 const input = require('./input')
+
 const {
   TILE_SIZE,
   WORLD_WIDTH,
   WORLD_HEIGHT
 } = require('./constants')
+
+const {
+  worldUpdate
+} = require('./actions')
 
 const init = () => {
   window.removeEventListener('DOMContentLoaded', init)
@@ -280,16 +287,12 @@ const init = () => {
   const state = dataStore.getState()
   input.start(state.mobs[0].id)
 
-  /*
-  dataStore.subscribe(() => {
-    console.log(JSON.stringify(dataStore.getState()))
-  })
-  */
+  dataStore.dispatch(worldUpdate())
 }
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./constants":4,"./dataStore":5,"./game":6,"./input":8}],8:[function(require,module,exports){
+},{"./actions":2,"./constants":4,"./dataStore":5,"./game":6,"./input":8}],8:[function(require,module,exports){
 let playerId = null
 
 const {
@@ -382,11 +385,13 @@ const isRequired = ({category = null, property = null} = {}) => {
 module.exports = isRequired
 
 },{}],10:[function(require,module,exports){
+const {VIEW_RANGE} = require('./constants')
+
 const mobPrototype = {
   getSurroundingTiles () {
     const {x, y} = this.position
     const area = []
-    const range = 3
+    const range = VIEW_RANGE
 
     for (let i = -range; i <= range; i++) {
       for (let j = -range; j <= range; j++) {
@@ -421,7 +426,7 @@ const createMob = ({x = 0, y = 0} = {}) => {
 
 module.exports = createMob
 
-},{}],11:[function(require,module,exports){
+},{"./constants":4}],11:[function(require,module,exports){
 const {
   NORTH,
   SOUTH,
@@ -431,6 +436,8 @@ const {
   WORLD_WIDTH,
   WORLD_HEIGHT
 } = require('./constants')
+
+const createTile = require('./tile')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
@@ -486,6 +493,21 @@ const reducers = (state, action) => {
 
     case reducerTypes.UPDATE:
       return Object.assign({}, state, {
+        world: state.world.map((row, y) => {
+          return row.map((tile, x) => {
+            if (tile !== null) {
+              if (tile.remainingSteps > 0) {
+                tile.remainingSteps -= action.timePassed
+              }
+
+              if (tile.remainingSteps <= 0) {
+                tile.remainingSteps = 0
+              }
+            }
+
+            return tile
+          })
+        }),
         mobs: state.mobs.map(mob => {
           if (mob.active) {
             mob.remainingSteps -= action.timePassed
@@ -519,13 +541,32 @@ const reducers = (state, action) => {
         return Object.assign({}, state, {
           world: state.world.map((rows, y) => {
             return rows.map((item, x) => {
-              let type = null
+              let changed = false
+              /*
+              if (item !== null && item.display !== false) {
+                item = createTile({hide: true})
+              }
+              */
               activeTiles.forEach(tile => {
                 if (x === tile.x && y === tile.y) {
-                  type = 1
+                  changed = true
+                  if (
+                    item === null ||
+                    (item.remainingSteps <= 0 && item.display === false)
+                  ) {
+                    item = createTile()
+                  }
                 }
               })
-              return type
+
+              if (
+                !changed &&
+                item !== null &&
+                item.display
+              ) {
+                item = createTile({hide: true})
+              }
+              return item
             })
           })
         })
@@ -541,7 +582,7 @@ module.exports = {
   reducers
 }
 
-},{"./constants":4}],12:[function(require,module,exports){
+},{"./constants":4,"./tile":13}],12:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
@@ -550,7 +591,8 @@ const {
   SOUTH,
   EAST,
   WEST,
-  MOB_MOVE_STEPS
+  MOB_MOVE_STEPS,
+  TILE_DISPLAY_STEPS
 } = require('./constants')
 
 const expect = property => isRequired({
@@ -567,10 +609,15 @@ const createRender = ({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    ctx.fillStyle = 'hsl(200, 50%, 50%)'
     state.world.forEach((row, y) => {
       row.forEach((item, x) => {
         if (item !== null) {
+          const alpha = item.display ? (
+            1 - (item.remainingSteps / TILE_DISPLAY_STEPS)
+          ) : (
+            item.remainingSteps / TILE_DISPLAY_STEPS
+          )
+          ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
           ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
         }
       })
@@ -612,6 +659,18 @@ module.exports = {
 }
 
 },{"./constants":4,"./dataStore":5,"./isRequired":9}],13:[function(require,module,exports){
+const {TILE_DISPLAY_STEPS} = require('./constants')
+
+const createTile = ({hide = false} = {}) => {
+  return {
+    display: !hide,
+    remainingSteps: TILE_DISPLAY_STEPS
+  }
+}
+
+module.exports = createTile
+
+},{"./constants":4}],14:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {update} = require('./actions')

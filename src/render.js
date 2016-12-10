@@ -6,7 +6,8 @@ const {
   SOUTH,
   EAST,
   WEST,
-  MOB_MOVE_STEPS
+  MOB_MOVE_STEPS,
+  TILE_DISPLAY_STEPS
 } = require('./constants')
 
 const expect = property => isRequired({
@@ -23,10 +24,15 @@ const createRender = ({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    ctx.fillStyle = 'hsl(200, 50%, 50%)'
     state.world.forEach((row, y) => {
       row.forEach((item, x) => {
         if (item !== null) {
+          const alpha = item.display ? (
+            1 - (item.remainingSteps / TILE_DISPLAY_STEPS)
+          ) : (
+            item.remainingSteps / TILE_DISPLAY_STEPS
+          )
+          ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
           ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
         }
       })

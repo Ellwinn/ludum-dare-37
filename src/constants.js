@@ -14,7 +14,9 @@ const constants = {
   SOUTH: 'SOUTH',
   EAST: 'EAST',
   WEST: 'WEST',
-  MOB_MOVE_STEPS: 500
+  MOB_MOVE_STEPS: 500,
+  TILE_DISPLAY_STEPS: 1000,
+  VIEW_RANGE: 5
 }
 
 module.exports = constants

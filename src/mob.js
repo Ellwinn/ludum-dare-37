@@ -1,8 +1,10 @@
+const {VIEW_RANGE} = require('./constants')
+
 const mobPrototype = {
   getSurroundingTiles () {
     const {x, y} = this.position
     const area = []
-    const range = 3
+    const range = VIEW_RANGE
 
     for (let i = -range; i <= range; i++) {
       for (let j = -range; j <= range; j++) {

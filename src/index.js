@@ -1,11 +1,16 @@
 const game = require('./game')
 const dataStore = require('./dataStore')
 const input = require('./input')
+
 const {
   TILE_SIZE,
   WORLD_WIDTH,
   WORLD_HEIGHT
 } = require('./constants')
+
+const {
+  worldUpdate
+} = require('./actions')
 
 const init = () => {
   window.removeEventListener('DOMContentLoaded', init)
@@ -22,11 +27,7 @@ const init = () => {
   const state = dataStore.getState()
   input.start(state.mobs[0].id)
 
-  /*
-  dataStore.subscribe(() => {
-    console.log(JSON.stringify(dataStore.getState()))
-  })
-  */
+  dataStore.dispatch(worldUpdate())
 }
 
 window.addEventListener('DOMContentLoaded', init)

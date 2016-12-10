@@ -1,5 +1,6 @@
 const tap = require('tap')
 const mob = require('./mob')
+const createTile = require('./tile')
 
 const {
   reducerTypes,
@@ -189,11 +190,13 @@ tap.test('reducers: worldUpdate', test => {
   const action = worldUpdate()
   const state = reducers(defaultState, action)
 
+  const tile = createTile()
+
   const expected = [
-    [1, 1, 1, 1, null],
-    [1, 1, 1, null, null],
-    [1, 1, null, null, null],
-    [1, null, null, null, null],
+    [tile, tile, tile, tile, null],
+    [tile, tile, tile, null, null],
+    [tile, tile, null, null, null],
+    [tile, null, null, null, null],
     [null, null, null, null, null]
   ]
 

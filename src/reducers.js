@@ -8,6 +8,8 @@ const {
   WORLD_HEIGHT
 } = require('./constants')
 
+const createTile = require('./tile')
+
 const reducerTypes = {
   UPDATE: 'UPDATE',
   MOB_MOVE: 'MOB_MOVE',
@@ -62,6 +64,21 @@ const reducers = (state, action) => {
 
     case reducerTypes.UPDATE:
       return Object.assign({}, state, {
+        world: state.world.map((row, y) => {
+          return row.map((tile, x) => {
+            if (tile !== null) {
+              if (tile.remainingSteps > 0) {
+                tile.remainingSteps -= action.timePassed
+              }
+
+              if (tile.remainingSteps <= 0) {
+                tile.remainingSteps = 0
+              }
+            }
+
+            return tile
+          })
+        }),
         mobs: state.mobs.map(mob => {
           if (mob.active) {
             mob.remainingSteps -= action.timePassed
@@ -95,13 +112,32 @@ const reducers = (state, action) => {
         return Object.assign({}, state, {
           world: state.world.map((rows, y) => {
             return rows.map((item, x) => {
-              let type = null
+              let changed = false
+              /*
+              if (item !== null && item.display !== false) {
+                item = createTile({hide: true})
+              }
+              */
               activeTiles.forEach(tile => {
                 if (x === tile.x && y === tile.y) {
-                  type = 1
+                  changed = true
+                  if (
+                    item === null ||
+                    (item.remainingSteps <= 0 && item.display === false)
+                  ) {
+                    item = createTile()
+                  }
                 }
               })
-              return type
+
+              if (
+                !changed &&
+                item !== null &&
+                item.display
+              ) {
+                item = createTile({hide: true})
+              }
+              return item
             })
           })
         })
