@@ -13,5 +13,8 @@
     "test": "tap ./src/**/*.test.js",
     "test:watch": "nodemon -e js --exec \"npm test\"",
     "start": "browser-sync start --server --files 'index.html' 'bundle.js'"
+  },
+  "dependencies": {
+    "lb-loop": "^1.0.0"
   }
 }

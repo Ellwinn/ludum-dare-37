@@ -1,3 +1,6 @@
+const game = require('./game')
+const dataStore = require('./dataStore')
+
 const init = () => {
   window.removeEventListener('DOMContentLoaded', init)
 
@@ -6,8 +9,8 @@ const init = () => {
   canvas.height = 320
 
   const ctx = canvas.getContext('2d')
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
+  game({canvas, ctx, dataStore})
   document.body.appendChild(canvas)
 }
 
