@@ -11,10 +11,15 @@ const createRender = ({
   ctx = expect('ctx')
 } = {}) => {
   const state = dataStore.getState()
-  console.log(state)
+
+  state.world.forEach((row, y) => {
+    row.forEach((item, x) => {
+      ctx.fillStyle = `hsl(${Math.floor(Math.random() * 360)}, 50%, 50%)`
+      ctx.fillRect(x * 32, y * 32, 32, 32)
+    })
+  })
 
   return () => {
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 }
 

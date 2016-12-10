@@ -126,7 +126,14 @@ module.exports = {
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
 
-module.exports = createBus({reducers})
+const x = 10
+const y = 10
+
+const defaultState = {
+  world: new Array(y).fill(new Array(x).fill(null))
+}
+
+module.exports = createBus({reducers, defaultState})
 
 },{"./bus":2,"./reducers":7}],4:[function(require,module,exports){
 const isRequired = require('./isRequired')
@@ -215,10 +222,15 @@ const createRender = ({
   ctx = expect('ctx')
 } = {}) => {
   const state = dataStore.getState()
-  console.log(state)
+
+  state.world.forEach((row, y) => {
+    row.forEach((item, x) => {
+      ctx.fillStyle = `hsl(${Math.floor(Math.random() * 360)}, 50%, 50%)`
+      ctx.fillRect(x * 32, y * 32, 32, 32)
+    })
+  })
 
   return () => {
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 }
 

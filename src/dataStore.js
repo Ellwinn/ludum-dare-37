@@ -1,4 +1,11 @@
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
 
-module.exports = createBus({reducers})
+const x = 10
+const y = 10
+
+const defaultState = {
+  world: new Array(y).fill(new Array(x).fill(null))
+}
+
+module.exports = createBus({reducers, defaultState})

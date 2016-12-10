@@ -8,7 +8,7 @@ The player can level up, but so can the room. Survive as long as you can
 
 TODO
 
-- [ ] Create a grid for the room
+- [x] Create a grid for the room
 - [ ] Create a player that can move around the room
 - [ ] Create a view circle around player
 - [ ] Create enemies to distroy
