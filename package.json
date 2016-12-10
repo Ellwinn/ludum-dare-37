@@ -1,12 +1,17 @@
 {
   "name": "ludum-dare-37",
   "version": "0.0.1",
-  "dependencies": {
+  "devDependencies": {
+    "browser-sync": "^2.18.2",
+    "browserify": "^13.1.1",
     "nodemon": "^1.11.0",
     "tap": "^8.0.1"
   },
   "scripts": {
+    "build": "browserify src/index.js > bundle.js",
+    "watch": "nodemon --watch src --exec \"npm run build\"",
     "test": "tap ./src/**/*.test.js",
-    "test:watch": "nodemon -e js --exec \"npm test\""
+    "test:watch": "nodemon -e js --exec \"npm test\"",
+    "start": "browser-sync start --server --files 'index.html' 'bundle.js'"
   }
 }
