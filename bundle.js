@@ -122,11 +122,19 @@ module.exports = {
   createBus
 }
 
-},{"./isRequired":7}],3:[function(require,module,exports){
+},{"./isRequired":8}],3:[function(require,module,exports){
 const constants = {
   TILE_SIZE: 32,
   WORLD_WIDTH: 15,
-  WORLD_HEIGHT: 11
+  WORLD_HEIGHT: 11,
+  KEY_LEFT: 37,
+  KEY_RIGHT: 39,
+  KEY_UP: 38,
+  KEY_DOWN: 40,
+  KEY_ONE: 49,
+  KEY_TWO: 50,
+  KEY_THREE: 51,
+  KEY_FOUR: 52
 }
 
 module.exports = constants
@@ -152,7 +160,7 @@ const defaultState = {
 
 module.exports = createBus({reducers, defaultState})
 
-},{"./bus":2,"./constants":3,"./mob":8,"./reducers":9}],5:[function(require,module,exports){
+},{"./bus":2,"./constants":3,"./mob":9,"./reducers":10}],5:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const loop = require('lb-loop')
 const {createUpdate} = require('./update')
@@ -180,9 +188,10 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":7,"./render":10,"./update":11,"lb-loop":1}],6:[function(require,module,exports){
+},{"./isRequired":8,"./render":11,"./update":12,"lb-loop":1}],6:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
+const input = require('./input')
 const {
   TILE_SIZE,
   WORLD_WIDTH,
@@ -200,11 +209,32 @@ const init = () => {
 
   game({canvas, ctx, dataStore})
   document.body.appendChild(canvas)
+  input.start()
 }
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./constants":3,"./dataStore":4,"./game":5}],7:[function(require,module,exports){
+},{"./constants":3,"./dataStore":4,"./game":5,"./input":7}],7:[function(require,module,exports){
+// TODO get keys from constants
+
+const handleKeyDown = event => {
+  console.log('event', event.keyCode)
+}
+
+const start = () => {
+  window.addEventListener('keydown', handleKeyDown)
+}
+
+const stop = () => {
+  window.removeEventListener('keydown', handleKeyDown)
+}
+
+module.exports = {
+  start,
+  stop
+}
+
+},{}],8:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -213,7 +243,7 @@ const isRequired = ({category = null, property = null} = {}) => {
 
 module.exports = isRequired
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 const mobPrototype = {}
 
 const createMob = ({x = 0, y = 0} = {}) => {
@@ -225,7 +255,7 @@ const createMob = ({x = 0, y = 0} = {}) => {
 
 module.exports = createMob
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const reducerTypes = {
   PLAYER_MOVE: 'PLAYER_MOVE'
 }
@@ -242,7 +272,7 @@ module.exports = {
   reducers
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
@@ -283,7 +313,7 @@ module.exports = {
   createRender
 }
 
-},{"./constants":3,"./dataStore":4,"./isRequired":7}],11:[function(require,module,exports){
+},{"./constants":3,"./dataStore":4,"./isRequired":8}],12:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 
@@ -307,4 +337,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./dataStore":4,"./isRequired":7}]},{},[6]);
+},{"./dataStore":4,"./isRequired":8}]},{},[6]);

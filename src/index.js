@@ -1,5 +1,6 @@
 const game = require('./game')
 const dataStore = require('./dataStore')
+const input = require('./input')
 const {
   TILE_SIZE,
   WORLD_WIDTH,
@@ -17,6 +18,7 @@ const init = () => {
 
   game({canvas, ctx, dataStore})
   document.body.appendChild(canvas)
+  input.start()
 }
 
 window.addEventListener('DOMContentLoaded', init)
