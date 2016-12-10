@@ -122,20 +122,37 @@ module.exports = {
   createBus
 }
 
-},{"./isRequired":6}],3:[function(require,module,exports){
+},{"./isRequired":7}],3:[function(require,module,exports){
+const constants = {
+  TILE_SIZE: 32,
+  WORLD_WIDTH: 15,
+  WORLD_HEIGHT: 11
+}
+
+module.exports = constants
+
+},{}],4:[function(require,module,exports){
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
-
-const x = 10
-const y = 10
+const mob = require('./mob')
+const {
+  WORLD_WIDTH,
+  WORLD_HEIGHT
+} = require('./constants')
 
 const defaultState = {
-  world: new Array(y).fill(new Array(x).fill(null))
+  world: new Array(WORLD_HEIGHT).fill(new Array(WORLD_WIDTH).fill(null)),
+  mobs: [
+    mob({
+      x: Math.round((WORLD_WIDTH - 1) * 0.5),
+      y: Math.round((WORLD_HEIGHT - 1) * 0.5)
+    })
+  ]
 }
 
 module.exports = createBus({reducers, defaultState})
 
-},{"./bus":2,"./reducers":7}],4:[function(require,module,exports){
+},{"./bus":2,"./constants":3,"./mob":8,"./reducers":9}],5:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const loop = require('lb-loop')
 const {createUpdate} = require('./update')
@@ -163,16 +180,21 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":6,"./render":8,"./update":9,"lb-loop":1}],5:[function(require,module,exports){
+},{"./isRequired":7,"./render":10,"./update":11,"lb-loop":1}],6:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
+const {
+  TILE_SIZE,
+  WORLD_WIDTH,
+  WORLD_HEIGHT
+} = require('./constants')
 
 const init = () => {
   window.removeEventListener('DOMContentLoaded', init)
 
   const canvas = document.createElement('canvas')
-  canvas.width = 320
-  canvas.height = 320
+  canvas.width = TILE_SIZE * WORLD_WIDTH
+  canvas.height = TILE_SIZE * WORLD_HEIGHT
 
   const ctx = canvas.getContext('2d')
 
@@ -182,7 +204,7 @@ const init = () => {
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./dataStore":3,"./game":4}],6:[function(require,module,exports){
+},{"./constants":3,"./dataStore":4,"./game":5}],7:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -191,7 +213,19 @@ const isRequired = ({category = null, property = null} = {}) => {
 
 module.exports = isRequired
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+const mobPrototype = {}
+
+const createMob = ({x = 0, y = 0} = {}) => {
+  const mob = Object.create(mobPrototype)
+  mob.position = {x, y}
+
+  return mob
+}
+
+module.exports = createMob
+
+},{}],9:[function(require,module,exports){
 const reducerTypes = {
   PLAYER_MOVE: 'PLAYER_MOVE'
 }
@@ -208,9 +242,12 @@ module.exports = {
   reducers
 }
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
+const {
+  TILE_SIZE
+} = require('./constants')
 
 const expect = property => isRequired({
   property,
@@ -226,8 +263,16 @@ const createRender = ({
   state.world.forEach((row, y) => {
     row.forEach((item, x) => {
       ctx.fillStyle = `hsl(${Math.floor(Math.random() * 360)}, 50%, 50%)`
-      ctx.fillRect(x * 32, y * 32, 32, 32)
+      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
     })
+  })
+
+  state.mobs.forEach(mob => {
+    ctx.fillStyle = '#000'
+    ctx.save()
+    ctx.translate(mob.position.x * TILE_SIZE, mob.position.y * TILE_SIZE)
+    ctx.fillRect(1, 1, 30, 30)
+    ctx.restore()
   })
 
   return () => {
@@ -238,7 +283,7 @@ module.exports = {
   createRender
 }
 
-},{"./dataStore":3,"./isRequired":6}],9:[function(require,module,exports){
+},{"./constants":3,"./dataStore":4,"./isRequired":7}],11:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 
@@ -262,4 +307,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./dataStore":3,"./isRequired":6}]},{},[5]);
+},{"./dataStore":4,"./isRequired":7}]},{},[6]);
