@@ -368,7 +368,9 @@ const {
   SOUTH,
   EAST,
   WEST,
-  MOB_MOVE_STEPS
+  MOB_MOVE_STEPS,
+  WORLD_WIDTH,
+  WORLD_HEIGHT
 } = require('./constants')
 
 const reducerTypes = {
@@ -386,15 +388,34 @@ const reducers = (state, action) => {
           }
 
           if (!mob.active) {
-            mob.active = true
-
             switch (action.direction) {
-              case SOUTH: mob.position.y++; break
-              case NORTH: mob.position.y--; break
-              case EAST: mob.position.x++; break
-              case WEST: mob.position.x--; break
+              case SOUTH:
+                if (mob.position.y + 1 >= WORLD_HEIGHT) {
+                  return mob
+                }
+                mob.position.y++
+                break
+              case NORTH:
+                if (mob.position.y - 1 < 0) {
+                  return mob
+                }
+                mob.position.y--
+                break
+              case EAST:
+                if (mob.position.x + 1 >= WORLD_WIDTH) {
+                  return mob
+                }
+                mob.position.x++
+                break
+              case WEST:
+                if (mob.position.x - 1 < 0) {
+                  return mob
+                }
+                mob.position.x--
+                break
             }
 
+            mob.active = true
             mob.remainingSteps = MOB_MOVE_STEPS
             mob.direction = action.direction
           }
@@ -452,14 +473,12 @@ const createRender = ({
   return () => {
     const state = dataStore.getState()
 
-    /*
     state.world.forEach((row, y) => {
       row.forEach((item, x) => {
         ctx.fillStyle = `hsl(200, 50%, 50%)`
         ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
       })
     })
-    */
 
     state.mobs.forEach(mob => {
       let x = mob.position.x * TILE_SIZE
