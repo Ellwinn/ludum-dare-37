@@ -1,4 +1,5 @@
 const tap = require('tap')
+const mob = require('./mob')
 
 const {
   reducerTypes,
@@ -7,7 +8,9 @@ const {
 
 const {
   mobMove,
-  mobsUpdate
+  update,
+  worldCreateTile,
+  worldUpdate
 } = require('./actions')
 
 const {
@@ -16,8 +19,10 @@ const {
 } = require('./constants')
 
 tap.test('reducerTypes', test => {
-  test.equal(reducerTypes.MOBS_UPDATE, 'MOBS_UPDATE')
+  test.equal(reducerTypes.UPDATE, 'UPDATE')
   test.equal(reducerTypes.MOB_MOVE, 'MOB_MOVE')
+  test.equal(reducerTypes.WORLD_CREATE_TILE, 'WORLD_CREATE_TILE')
+  test.equal(reducerTypes.WORLD_UPDATE, 'WORLD_UPDATE')
 
   test.end()
 })
@@ -135,7 +140,7 @@ tap.test('reducers: mobs update', test => {
       }
     ]
   }
-  const action = mobsUpdate({
+  const action = update({
     timePassed: 1
   })
   const state = reducers(defaultState, action)
@@ -149,5 +154,49 @@ tap.test('reducers: mobs update', test => {
 
   test.equal(c.active, false)
   test.equal(c.remainingSteps, 0)
+  test.end()
+})
+
+tap.test('reducers: worldCreateTile', test => {
+  const defaultState = {
+    world: [
+      [null, null, null],
+      [null, null, null]
+    ]
+  }
+  const action = worldCreateTile({x: 1, y: 0})
+  const state = reducers(defaultState, action)
+
+  test.equal(state.world[0][1] !== null, true)
+  test.equal(typeof state.world[0][1], 'number')
+
+  test.end()
+})
+
+tap.test('reducers: worldUpdate', test => {
+  const defaultState = {
+    world: [
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, null, null, null, null]
+    ],
+    mobs: [
+      mob()
+    ]
+  }
+  const action = worldUpdate()
+  const state = reducers(defaultState, action)
+
+  const expected = [
+    [1, 1, 1, 1, null],
+    [1, 1, 1, null, null],
+    [1, 1, null, null, null],
+    [1, null, null, null, null],
+    [null, null, null, null, null]
+  ]
+
+  test.equal(JSON.stringify(state.world), JSON.stringify(expected))
   test.end()
 })

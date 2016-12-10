@@ -9,8 +9,10 @@ const {
 } = require('./constants')
 
 const reducerTypes = {
-  MOBS_UPDATE: 'MOBS_UPDATE',
-  MOB_MOVE: 'MOB_MOVE'
+  UPDATE: 'UPDATE',
+  MOB_MOVE: 'MOB_MOVE',
+  WORLD_CREATE_TILE: 'WORLD_CREATE_TILE',
+  WORLD_UPDATE: 'WORLD_UPDATE'
 }
 
 const reducers = (state, action) => {
@@ -58,7 +60,7 @@ const reducers = (state, action) => {
         })
       })
 
-    case reducerTypes.MOBS_UPDATE:
+    case reducerTypes.UPDATE:
       return Object.assign({}, state, {
         mobs: state.mobs.map(mob => {
           if (mob.active) {
@@ -73,6 +75,37 @@ const reducers = (state, action) => {
           return mob
         })
       })
+
+    case reducerTypes.WORLD_CREATE_TILE:
+      return Object.assign({}, state, {
+        world: state.world.map((row, y) => {
+          return row.map((item, x) => {
+            if (item === null && x === action.x && y === action.y) {
+              item = 1
+            }
+
+            return item
+          })
+        })
+      })
+
+    case reducerTypes.WORLD_UPDATE:
+      {
+        const activeTiles = state.mobs[0].getSurroundingTiles()
+        return Object.assign({}, state, {
+          world: state.world.map((rows, y) => {
+            return rows.map((item, x) => {
+              let type = null
+              activeTiles.forEach(tile => {
+                if (x === tile.x && y === tile.y) {
+                  type = 1
+                }
+              })
+              return type
+            })
+          })
+        })
+      }
 
     default:
       return Object.assign({}, state)

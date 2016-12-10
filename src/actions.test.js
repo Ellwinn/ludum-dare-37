@@ -1,7 +1,9 @@
 const tap = require('tap')
 const {
   mobMove,
-  mobsUpdate
+  update,
+  worldCreateTile,
+  worldUpdate
 } = require('./actions')
 const {reducerTypes} = require('./reducers')
 
@@ -24,17 +26,48 @@ tap.test('mobMove', test => {
 })
 
 tap.test('mobUpdate', test => {
-  let action = mobsUpdate()
+  let action = update()
 
-  test.equal(action.type, reducerTypes.MOBS_UPDATE)
+  test.equal(action.type, reducerTypes.UPDATE)
   test.equal(action.timePassed, 0)
 
-  action = mobsUpdate({
+  action = update({
     timePassed: 23
   })
 
-  test.equal(action.type, reducerTypes.MOBS_UPDATE)
+  test.equal(action.type, reducerTypes.UPDATE)
   test.equal(action.timePassed, 23)
 
+  test.end()
+})
+
+tap.test('worldCreateTile', test => {
+  try {
+    worldCreateTile()
+    test.fail('should required x position')
+  } catch (error) {
+    test.equal(error.message, errorMessage('worldCreateTile', 'x'))
+  }
+
+  try {
+    worldCreateTile({
+      x: 0
+    })
+    test.fail('should required y position')
+  } catch (error) {
+    test.equal(error.message, errorMessage('worldCreateTile', 'y'))
+  }
+
+  const action = worldCreateTile({x: 5, y: 7})
+
+  test.equal(action.type, reducerTypes.WORLD_CREATE_TILE)
+  test.equal(action.x, 5)
+  test.equal(action.y, 7)
+
+  test.end()
+})
+
+tap.test('worldUpdate', test => {
+  test.equal(worldUpdate().type, reducerTypes.WORLD_UPDATE)
   test.end()
 })

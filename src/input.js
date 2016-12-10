@@ -15,34 +15,43 @@ const {
   KEY_FOUR
 } = require('./constants')
 
-const {mobMove} = require('./actions')
+const {
+  mobMove,
+  worldUpdate
+} = require('./actions')
 const dataStore = require('./dataStore')
 
 const handleKeyDown = event => {
+  let updateWorld = false
+
   switch (event.keyCode) {
     case KEY_LEFT:
       dataStore.dispatch(mobMove({
         direction: WEST,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_RIGHT:
       dataStore.dispatch(mobMove({
         direction: EAST,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_UP:
       dataStore.dispatch(mobMove({
         direction: NORTH,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_DOWN:
       dataStore.dispatch(mobMove({
         direction: SOUTH,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_ONE:
     case KEY_TWO:
@@ -50,6 +59,10 @@ const handleKeyDown = event => {
     case KEY_FOUR:
       console.log('action button pressed')
       break
+  }
+
+  if (updateWorld) {
+    dataStore.dispatch(worldUpdate())
   }
 }
 

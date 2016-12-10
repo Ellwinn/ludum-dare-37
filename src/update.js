@@ -1,6 +1,6 @@
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
-const {mobsUpdate} = require('./actions')
+const {update} = require('./actions')
 
 const expect = property => isRequired({
   property,
@@ -12,7 +12,7 @@ const createUpdate = ({
   ctx = expect('ctx')
 } = {}) => {
   return timePassed => {
-    dataStore.dispatch(mobsUpdate({timePassed}))
+    dataStore.dispatch(update({timePassed}))
   }
 }
 

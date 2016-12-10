@@ -21,10 +21,14 @@ const createRender = ({
   return () => {
     const state = dataStore.getState()
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = 'hsl(200, 50%, 50%)'
     state.world.forEach((row, y) => {
       row.forEach((item, x) => {
-        ctx.fillStyle = `hsl(200, 50%, 50%)`
-        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        if (item !== null) {
+          ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        }
       })
     })
 

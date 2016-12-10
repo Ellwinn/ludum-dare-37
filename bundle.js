@@ -99,17 +99,36 @@ const mobIdle = ({
   }
 }
 
-const mobsUpdate = ({timePassed = 0} = {}) => {
+const update = ({timePassed = 0} = {}) => {
   return {
     timePassed,
-    type: reducerTypes.MOBS_UPDATE
+    type: reducerTypes.UPDATE
+  }
+}
+
+const worldCreateTile = ({
+  x = isRequired({category: 'worldCreateTile', property: 'x'}),
+  y = isRequired({category: 'worldCreateTile', property: 'y'})
+} = {}) => {
+  return {
+    x,
+    y,
+    type: reducerTypes.WORLD_CREATE_TILE
+  }
+}
+
+const worldUpdate = () => {
+  return {
+    type: reducerTypes.WORLD_UPDATE
   }
 }
 
 module.exports = {
   mobMove,
   mobIdle,
-  mobsUpdate
+  update,
+  worldCreateTile,
+  worldUpdate
 }
 
 },{"./isRequired":9,"./reducers":11}],3:[function(require,module,exports){
@@ -288,34 +307,43 @@ const {
   KEY_FOUR
 } = require('./constants')
 
-const {mobMove} = require('./actions')
+const {
+  mobMove,
+  worldUpdate
+} = require('./actions')
 const dataStore = require('./dataStore')
 
 const handleKeyDown = event => {
+  let updateWorld = false
+
   switch (event.keyCode) {
     case KEY_LEFT:
       dataStore.dispatch(mobMove({
         direction: WEST,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_RIGHT:
       dataStore.dispatch(mobMove({
         direction: EAST,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_UP:
       dataStore.dispatch(mobMove({
         direction: NORTH,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_DOWN:
       dataStore.dispatch(mobMove({
         direction: SOUTH,
         id: playerId
       }))
+      updateWorld = true
       break
     case KEY_ONE:
     case KEY_TWO:
@@ -323,6 +351,10 @@ const handleKeyDown = event => {
     case KEY_FOUR:
       console.log('action button pressed')
       break
+  }
+
+  if (updateWorld) {
+    dataStore.dispatch(worldUpdate())
   }
 }
 
@@ -350,14 +382,41 @@ const isRequired = ({category = null, property = null} = {}) => {
 module.exports = isRequired
 
 },{}],10:[function(require,module,exports){
-const createMob = ({x = 0, y = 0} = {}) => {
-  return {
-    id: Math.random().toString(32).substring(2),
-    position: {x, y},
-    active: false,
-    remainingSteps: 0,
-    direction: null
+const mobPrototype = {
+  getSurroundingTiles () {
+    const {x, y} = this.position
+    const area = []
+    const range = 3
+
+    for (let i = -range; i <= range; i++) {
+      for (let j = -range; j <= range; j++) {
+        const xSteps = Math.abs(j)
+        const ySteps = Math.abs(i)
+        const distance = xSteps + ySteps
+
+        if (distance <= range) {
+          area.push({
+            x: j + x,
+            y: i + y
+          })
+        }
+      }
+    }
+
+    return area
   }
+}
+
+const createMob = ({x = 0, y = 0} = {}) => {
+  const mob = Object.create(mobPrototype)
+
+  mob.id = Math.random().toString(32).substring(2)
+  mob.position = {x, y}
+  mob.active = false
+  mob.remainingSteps = 0
+  mob.direction = null
+
+  return mob
 }
 
 module.exports = createMob
@@ -374,8 +433,10 @@ const {
 } = require('./constants')
 
 const reducerTypes = {
-  MOBS_UPDATE: 'MOBS_UPDATE',
-  MOB_MOVE: 'MOB_MOVE'
+  UPDATE: 'UPDATE',
+  MOB_MOVE: 'MOB_MOVE',
+  WORLD_CREATE_TILE: 'WORLD_CREATE_TILE',
+  WORLD_UPDATE: 'WORLD_UPDATE'
 }
 
 const reducers = (state, action) => {
@@ -423,7 +484,7 @@ const reducers = (state, action) => {
         })
       })
 
-    case reducerTypes.MOBS_UPDATE:
+    case reducerTypes.UPDATE:
       return Object.assign({}, state, {
         mobs: state.mobs.map(mob => {
           if (mob.active) {
@@ -438,6 +499,37 @@ const reducers = (state, action) => {
           return mob
         })
       })
+
+    case reducerTypes.WORLD_CREATE_TILE:
+      return Object.assign({}, state, {
+        world: state.world.map((row, y) => {
+          return row.map((item, x) => {
+            if (item === null && x === action.x && y === action.y) {
+              item = 1
+            }
+
+            return item
+          })
+        })
+      })
+
+    case reducerTypes.WORLD_UPDATE:
+      {
+        const activeTiles = state.mobs[0].getSurroundingTiles()
+        return Object.assign({}, state, {
+          world: state.world.map((rows, y) => {
+            return rows.map((item, x) => {
+              let type = null
+              activeTiles.forEach(tile => {
+                if (x === tile.x && y === tile.y) {
+                  type = 1
+                }
+              })
+              return type
+            })
+          })
+        })
+      }
 
     default:
       return Object.assign({}, state)
@@ -473,10 +565,14 @@ const createRender = ({
   return () => {
     const state = dataStore.getState()
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = 'hsl(200, 50%, 50%)'
     state.world.forEach((row, y) => {
       row.forEach((item, x) => {
-        ctx.fillStyle = `hsl(200, 50%, 50%)`
-        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        if (item !== null) {
+          ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        }
       })
     })
 
@@ -518,7 +614,7 @@ module.exports = {
 },{"./constants":4,"./dataStore":5,"./isRequired":9}],13:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
-const {mobsUpdate} = require('./actions')
+const {update} = require('./actions')
 
 const expect = property => isRequired({
   property,
@@ -530,7 +626,7 @@ const createUpdate = ({
   ctx = expect('ctx')
 } = {}) => {
   return timePassed => {
-    dataStore.dispatch(mobsUpdate({timePassed}))
+    dataStore.dispatch(update({timePassed}))
   }
 }
 

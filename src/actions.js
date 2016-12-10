@@ -27,15 +27,34 @@ const mobIdle = ({
   }
 }
 
-const mobsUpdate = ({timePassed = 0} = {}) => {
+const update = ({timePassed = 0} = {}) => {
   return {
     timePassed,
-    type: reducerTypes.MOBS_UPDATE
+    type: reducerTypes.UPDATE
+  }
+}
+
+const worldCreateTile = ({
+  x = isRequired({category: 'worldCreateTile', property: 'x'}),
+  y = isRequired({category: 'worldCreateTile', property: 'y'})
+} = {}) => {
+  return {
+    x,
+    y,
+    type: reducerTypes.WORLD_CREATE_TILE
+  }
+}
+
+const worldUpdate = () => {
+  return {
+    type: reducerTypes.WORLD_UPDATE
   }
 }
 
 module.exports = {
   mobMove,
   mobIdle,
-  mobsUpdate
+  update,
+  worldCreateTile,
+  worldUpdate
 }

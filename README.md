@@ -10,10 +10,11 @@ TODO
 
 - [x] Create a grid for the room
 - [x] Create a player that can move around the room
-- [ ] Create a view circle around player
+- [x] Create a view circle around player
 - [ ] Create enemies to distroy
-- [ ] Add level up abilities
 - [ ] Add enemy AI
+- [ ] Add pick ups (gold + power ups)
+- [ ] Add level up abilities
 - [ ] Add sound FX
 - [ ] Add music
 - [ ] Create graphics
