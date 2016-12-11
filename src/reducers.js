@@ -10,6 +10,7 @@ const {
 
 const createTile = require('./tile')
 const createMob = require('./mob')
+const collision = require('./collision')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
@@ -27,9 +28,12 @@ const reducers = (state, action) => {
             return mob
           }
 
-          // TODO test for collisions with existing mobs
-
           if (!mob.active) {
+            const originalPosition = {
+              x: mob.position.x,
+              y: mob.position.y
+            }
+
             switch (action.direction) {
               case SOUTH:
                 if (mob.position.y + 1 >= WORLD_HEIGHT) {
@@ -55,6 +59,20 @@ const reducers = (state, action) => {
                 }
                 mob.position.x--
                 break
+            }
+
+            const collisions = collision({
+              id: mob.id,
+              position: mob.position,
+              elements: state.mobs
+            })
+
+            collisions.forEach(id => {
+              mob.position = originalPosition
+            })
+
+            if (collisions.length > 0) {
+              return mob
             }
 
             mob.active = true

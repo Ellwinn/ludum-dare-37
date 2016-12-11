@@ -131,7 +131,7 @@ module.exports = {
   worldUpdate
 }
 
-},{"./isRequired":9,"./reducers":11}],3:[function(require,module,exports){
+},{"./isRequired":10,"./reducers":12}],3:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const createBus = ({
@@ -184,7 +184,29 @@ module.exports = {
   createBus
 }
 
-},{"./isRequired":9}],4:[function(require,module,exports){
+},{"./isRequired":10}],4:[function(require,module,exports){
+const isRequired = require('./isRequired')
+
+const collision = ({
+  id = isRequired({category: 'collision', property: 'id'}),
+  position = isRequired({category: 'collision', property: 'position'}),
+  elements = isRequired({category: 'collision', property: 'elements'})
+} = {}) => {
+  return elements.reduce((ids, element) => {
+    if (
+      element.position.x === position.x &&
+      element.position.y === position.y &&
+      element.id !== id
+    ) {
+      ids.push(element.id)
+    }
+    return ids
+  }, [])
+}
+
+module.exports = collision
+
+},{"./isRequired":10}],5:[function(require,module,exports){
 const constants = {
   TILE_SIZE: 4,
   WORLD_WIDTH: 15,
@@ -210,7 +232,7 @@ const constants = {
 
 module.exports = constants
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
 const mob = require('./mob')
@@ -231,7 +253,7 @@ const defaultState = {
 
 module.exports = createBus({reducers, defaultState})
 
-},{"./bus":3,"./constants":4,"./mob":10,"./reducers":11}],6:[function(require,module,exports){
+},{"./bus":3,"./constants":5,"./mob":11,"./reducers":12}],7:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const loop = require('lb-loop')
 const {createUpdate} = require('./update')
@@ -259,7 +281,7 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":9,"./render":12,"./update":14,"lb-loop":1}],7:[function(require,module,exports){
+},{"./isRequired":10,"./render":13,"./update":15,"lb-loop":1}],8:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
 const input = require('./input')
@@ -296,7 +318,7 @@ const init = () => {
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./actions":2,"./constants":4,"./dataStore":5,"./game":6,"./input":8}],8:[function(require,module,exports){
+},{"./actions":2,"./constants":5,"./dataStore":6,"./game":7,"./input":9}],9:[function(require,module,exports){
 let playerId = null
 
 const {
@@ -379,7 +401,7 @@ module.exports = {
   stop
 }
 
-},{"./actions":2,"./constants":4,"./dataStore":5}],9:[function(require,module,exports){
+},{"./actions":2,"./constants":5,"./dataStore":6}],10:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -388,7 +410,7 @@ const isRequired = ({category = null, property = null} = {}) => {
 
 module.exports = isRequired
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 const {VIEW_RANGE} = require('./constants')
 
 const mobPrototype = {
@@ -436,7 +458,7 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
 
 module.exports = createMob
 
-},{"./constants":4}],11:[function(require,module,exports){
+},{"./constants":5}],12:[function(require,module,exports){
 const {
   NORTH,
   SOUTH,
@@ -449,6 +471,7 @@ const {
 
 const createTile = require('./tile')
 const createMob = require('./mob')
+const collision = require('./collision')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
@@ -466,9 +489,12 @@ const reducers = (state, action) => {
             return mob
           }
 
-          // TODO test for collisions with existing mobs
-
           if (!mob.active) {
+            const originalPosition = {
+              x: mob.position.x,
+              y: mob.position.y
+            }
+
             switch (action.direction) {
               case SOUTH:
                 if (mob.position.y + 1 >= WORLD_HEIGHT) {
@@ -494,6 +520,20 @@ const reducers = (state, action) => {
                 }
                 mob.position.x--
                 break
+            }
+
+            const collisions = collision({
+              id: mob.id,
+              position: mob.position,
+              elements: state.mobs
+            })
+
+            collisions.forEach(id => {
+              mob.position = originalPosition
+            })
+
+            if (collisions.length > 0) {
+              return mob
             }
 
             mob.active = true
@@ -613,7 +653,7 @@ module.exports = {
   reducers
 }
 
-},{"./constants":4,"./mob":10,"./tile":13}],12:[function(require,module,exports){
+},{"./collision":4,"./constants":5,"./mob":11,"./tile":14}],13:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
@@ -701,7 +741,7 @@ module.exports = {
   createRender
 }
 
-},{"./constants":4,"./dataStore":5,"./isRequired":9}],13:[function(require,module,exports){
+},{"./constants":5,"./dataStore":6,"./isRequired":10}],14:[function(require,module,exports){
 const {TILE_DISPLAY_STEPS} = require('./constants')
 
 const createTile = ({hide = false} = {}) => {
@@ -714,7 +754,7 @@ const createTile = ({hide = false} = {}) => {
 
 module.exports = createTile
 
-},{"./constants":4}],14:[function(require,module,exports){
+},{"./constants":5}],15:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {update} = require('./actions')
@@ -737,4 +777,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./actions":2,"./dataStore":5,"./isRequired":9}]},{},[7]);
+},{"./actions":2,"./dataStore":6,"./isRequired":10}]},{},[8]);
