@@ -2,7 +2,7 @@ const tap = require('tap')
 const constants = require('./constants')
 
 tap.test('constants', test => {
-  test.equal(constants.TILE_SIZE, 32, 'Tile size is 32')
+  test.equal(typeof constants.TILE_SIZE, 'number', 'Tile size is a number')
   test.equal(typeof constants.WORLD_WIDTH, 'number', 'World width is set')
   test.equal(typeof constants.WORLD_HEIGHT, 'number', 'World height is set')
 
@@ -24,6 +24,9 @@ tap.test('constants', test => {
   test.equal(typeof constants.TILE_DISPLAY_STEPS, 'number')
 
   test.equal(typeof constants.VIEW_RANGE, 'number')
+
+  test.equal(constants.COLOR_RED, 'hsl(0, 50%, 50%)')
+  test.equal(constants.COLOR_GREEN, 'hsl(80, 50%, 50%)')
 
   test.end()
 })

@@ -186,7 +186,7 @@ module.exports = {
 
 },{"./isRequired":9}],4:[function(require,module,exports){
 const constants = {
-  TILE_SIZE: 32,
+  TILE_SIZE: 4,
   WORLD_WIDTH: 15,
   WORLD_HEIGHT: 11,
   KEY_LEFT: 37,
@@ -203,7 +203,9 @@ const constants = {
   WEST: 'WEST',
   MOB_MOVE_STEPS: 500,
   TILE_DISPLAY_STEPS: 1000,
-  VIEW_RANGE: 5
+  VIEW_RANGE: 5,
+  COLOR_RED: 'hsl(0, 50%, 50%)',
+  COLOR_GREEN: 'hsl(80, 50%, 50%)'
 }
 
 module.exports = constants
@@ -278,6 +280,8 @@ const init = () => {
   const canvas = document.createElement('canvas')
   canvas.width = TILE_SIZE * WORLD_WIDTH
   canvas.height = TILE_SIZE * WORLD_HEIGHT
+
+  canvas.setAttribute('style', `width: ${canvas.width * 8}px;`)
 
   const ctx = canvas.getContext('2d')
 
@@ -412,14 +416,20 @@ const mobPrototype = {
   }
 }
 
-const createMob = ({x = 0, y = 0} = {}) => {
+const createMob = ({x = 0, y = 0, level = 0} = {}) => {
   const mob = Object.create(mobPrototype)
+
+  const health = 10 + (level * 2)
 
   mob.id = Math.random().toString(32).substring(2)
   mob.position = {x, y}
   mob.active = false
   mob.remainingSteps = 0
   mob.direction = null
+  mob.health = health
+  mob.maxHealth = health
+  mob.attack = 1 + level
+  mob.gold = level === 0 ? 0 : Math.floor(Math.random() * level)
 
   return mob
 }
@@ -613,7 +623,9 @@ const {
   EAST,
   WEST,
   MOB_MOVE_STEPS,
-  TILE_DISPLAY_STEPS
+  TILE_DISPLAY_STEPS,
+  COLOR_RED,
+  COLOR_GREEN
 } = require('./constants')
 
 const expect = property => isRequired({
@@ -669,10 +681,17 @@ const createRender = ({
         }
       }
 
-      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
       ctx.save()
       ctx.translate(x, y)
-      ctx.fillRect(1, 1, 30, 30)
+      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
+      ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE)
+
+      const percentageHealth = mob.health / mob.maxHealth
+      const percentWidth = Math.floor(percentageHealth * TILE_SIZE)
+      ctx.fillStyle = COLOR_GREEN
+      ctx.fillRect(0, 0, percentWidth, 1)
+      ctx.fillStyle = COLOR_RED
+      ctx.fillRect(percentWidth, 0, TILE_SIZE - percentWidth, 1)
       ctx.restore()
     })
   }

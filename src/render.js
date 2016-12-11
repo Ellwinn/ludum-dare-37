@@ -7,7 +7,9 @@ const {
   EAST,
   WEST,
   MOB_MOVE_STEPS,
-  TILE_DISPLAY_STEPS
+  TILE_DISPLAY_STEPS,
+  COLOR_RED,
+  COLOR_GREEN
 } = require('./constants')
 
 const expect = property => isRequired({
@@ -63,10 +65,17 @@ const createRender = ({
         }
       }
 
-      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
       ctx.save()
       ctx.translate(x, y)
-      ctx.fillRect(1, 1, 30, 30)
+      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
+      ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE)
+
+      const percentageHealth = mob.health / mob.maxHealth
+      const percentWidth = Math.floor(percentageHealth * TILE_SIZE)
+      ctx.fillStyle = COLOR_GREEN
+      ctx.fillRect(0, 0, percentWidth, 1)
+      ctx.fillStyle = COLOR_RED
+      ctx.fillRect(percentWidth, 0, TILE_SIZE - percentWidth, 1)
       ctx.restore()
     })
   }

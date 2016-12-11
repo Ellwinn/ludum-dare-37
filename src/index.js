@@ -19,6 +19,8 @@ const init = () => {
   canvas.width = TILE_SIZE * WORLD_WIDTH
   canvas.height = TILE_SIZE * WORLD_HEIGHT
 
+  canvas.setAttribute('style', `width: ${canvas.width * 8}px;`)
+
   const ctx = canvas.getContext('2d')
 
   game({canvas, ctx, dataStore})

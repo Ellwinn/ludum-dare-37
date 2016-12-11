@@ -12,6 +12,10 @@ tap.test('mob', test => {
   test.equal(player.active === false, true, 'should not be active to start')
   test.equal(player.remainingSteps, 0, 'should set remaining steps')
   test.equal(player.direction, null, 'should set non-moving direction')
+  test.equal(player.health, 10, 'should set default health')
+  test.equal(player.maxHealth, 10, 'should set max health')
+  test.equal(player.attack, 1, 'should start with poor attack')
+  test.equal(typeof player.gold, 'number', 'should have x gold')
 
   test.end()
 })
@@ -30,6 +34,40 @@ tap.test('mob: position', test => {
   test.equal(player.active === false, true, 'should not be active to start')
   test.equal(player.remainingSteps, 0, 'should set remaining steps')
   test.equal(player.direction, null, 'should set non-moving direction')
+  test.equal(player.health, 10, 'should set default health')
+  test.equal(player.maxHealth, 10, 'should set max health')
+  test.equal(player.attack, 1, 'should start with poor attack')
+  test.equal(typeof player.gold, 'number', 'should have x gold')
+
+  test.end()
+})
+
+tap.test('mob: at level 1', test => {
+  const level = 1
+  const health = 10 + (level * 2)
+  const attack = 1 + level
+
+  const player = mob({level})
+
+  test.equal(player.health, health, 'should set default health')
+  test.equal(player.maxHealth, health, 'should set max health')
+  test.equal(player.attack, attack, 'should start with poor attack')
+  test.equal(typeof player.gold, 'number', 'should have x gold')
+
+  test.end()
+})
+
+tap.test('mob: at level 5', test => {
+  const level = 5
+  const health = 10 + (level * 2)
+  const attack = 1 + level
+
+  const player = mob({level})
+
+  test.equal(player.health, health, 'should set default health')
+  test.equal(player.maxHealth, health, 'should set max health')
+  test.equal(player.attack, attack, 'should start with poor attack')
+  test.equal(typeof player.gold, 'number', 'should have x gold')
 
   test.end()
 })

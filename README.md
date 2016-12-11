@@ -19,4 +19,5 @@ TODO
 - [ ] Add sound FX
 - [ ] Add music
 - [ ] Create graphics
+- [ ] Shop?
 
