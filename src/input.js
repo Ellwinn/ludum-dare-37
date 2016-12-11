@@ -23,6 +23,8 @@ const {
 
 const dataStore = require('./dataStore')
 
+const sound = require('./sound')
+
 const handleKeyDown = event => {
   let updateWorld = false
   const state = dataStore.getState()
@@ -32,6 +34,11 @@ const handleKeyDown = event => {
   }
 
   if (event.keyCode === 13 && state.gameState === 'end') {
+    const maxGold = window.localStorage.getItem('maxGold') || 0
+
+    if (state.mobs[0].gold > maxGold) {
+      window.localStorage.setItem('maxGold', state.mobs[0].gold)
+    }
     window.location.reload()
   }
 
@@ -77,6 +84,7 @@ const handleKeyDown = event => {
   }
 
   if (updateWorld) {
+    sound.walk()
     dataStore.dispatch(worldUpdate())
   }
 }

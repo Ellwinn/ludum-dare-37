@@ -15,9 +15,8 @@ TODO
 - [x] Enable fighting
 - [x] Enable level up
 - [x] Add enemy AI
-- [ ] Add pick ups (gold + power ups)
-- [ ] Add level up abilities
-- [ ] Add sound FX
+- [x] Add level up abilities
+- [x] Add sound FX
 - [ ] Add music
 - [ ] Update graphics
 - [ ] Shop?

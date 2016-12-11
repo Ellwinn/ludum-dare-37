@@ -1,4 +1,5 @@
 const isRequired = require('./isRequired')
+const sound = require('./sound')
 
 const calculateAttackStrength = (mob) => {
   const attack = mob.attack
@@ -8,8 +9,10 @@ const calculateAttackStrength = (mob) => {
 
 const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
   defending.health -= calculateAttackStrength(attacking)
+  sound.attack()
 
   if (defending.health <= 0) {
+    sound.die()
     defending.health = 0
 
     attacking.gold += defending.gold
@@ -20,6 +23,7 @@ const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
     attacking.health -= calculateAttackStrength(defending)
 
     if (attacking.health < 0) {
+      sound.die()
       attacking.health = 0
     }
   }

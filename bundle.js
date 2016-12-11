@@ -207,6 +207,7 @@ module.exports = ai
 
 },{"./battle":4,"./isRequired":13}],4:[function(require,module,exports){
 const isRequired = require('./isRequired')
+const sound = require('./sound')
 
 const calculateAttackStrength = (mob) => {
   const attack = mob.attack
@@ -216,8 +217,10 @@ const calculateAttackStrength = (mob) => {
 
 const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
   defending.health -= calculateAttackStrength(attacking)
+  sound.attack()
 
   if (defending.health <= 0) {
+    sound.die()
     defending.health = 0
 
     attacking.gold += defending.gold
@@ -228,6 +231,7 @@ const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
     attacking.health -= calculateAttackStrength(defending)
 
     if (attacking.health < 0) {
+      sound.die()
       attacking.health = 0
     }
   }
@@ -237,7 +241,7 @@ const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
 
 module.exports = battle
 
-},{"./isRequired":13}],5:[function(require,module,exports){
+},{"./isRequired":13,"./sound":17}],5:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const createBus = ({
@@ -390,7 +394,7 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":13,"./render":16,"./update":18,"lb-loop":1}],10:[function(require,module,exports){
+},{"./isRequired":13,"./render":16,"./update":19,"lb-loop":1}],10:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const heal = (mob = isRequired({category: 'heal'})) => {
@@ -439,7 +443,10 @@ const init = () => {
 
   dataStore.dispatch(worldUpdate())
 
-  hud.innerHTML = 'Press "enter" to start.'
+  hud.innerHTML = `
+  Press "enter" to start.
+  <br/>Current highscore ${window.localStorage.getItem('maxGold') || 0} gold
+  `
 
   document.body.appendChild(hud)
 
@@ -479,6 +486,8 @@ const {
 
 const dataStore = require('./dataStore')
 
+const sound = require('./sound')
+
 const handleKeyDown = event => {
   let updateWorld = false
   const state = dataStore.getState()
@@ -488,6 +497,11 @@ const handleKeyDown = event => {
   }
 
   if (event.keyCode === 13 && state.gameState === 'end') {
+    const maxGold = window.localStorage.getItem('maxGold') || 0
+
+    if (state.mobs[0].gold > maxGold) {
+      window.localStorage.setItem('maxGold', state.mobs[0].gold)
+    }
     window.location.reload()
   }
 
@@ -533,6 +547,7 @@ const handleKeyDown = event => {
   }
 
   if (updateWorld) {
+    sound.walk()
     dataStore.dispatch(worldUpdate())
   }
 }
@@ -551,7 +566,7 @@ module.exports = {
   stop
 }
 
-},{"./actions":2,"./constants":7,"./dataStore":8}],13:[function(require,module,exports){
+},{"./actions":2,"./constants":7,"./dataStore":8,"./sound":17}],13:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -595,7 +610,7 @@ const mobPrototype = {
       this.health = health
       this.maxHealth = health
       this.attack = this.level + 1
-      this.xpForLevelUp = 50 * this.level + 50
+      this.xpForLevelUp = 30 * this.level + 30
     }
   }
 }
@@ -613,10 +628,10 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
   mob.health = health
   mob.maxHealth = health
   mob.attack = 1 + level
-  mob.gold = level === 0 ? 0 : Math.floor(Math.random() * level)
+  mob.gold = level === 0 ? 1 : Math.floor(Math.random() * level)
   mob.level = level
   mob.xp = 0
-  mob.xpForLevelUp = 50
+  mob.xpForLevelUp = 30
 
   return mob
 }
@@ -849,7 +864,7 @@ module.exports = {
   reducers
 }
 
-},{"./ai":3,"./battle":4,"./collision":6,"./constants":7,"./heal":10,"./mob":14,"./tile":17}],16:[function(require,module,exports){
+},{"./ai":3,"./battle":4,"./collision":6,"./constants":7,"./heal":10,"./mob":14,"./tile":18}],16:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
@@ -962,6 +977,145 @@ module.exports = {
 }
 
 },{"./constants":7,"./dataStore":8,"./isRequired":13}],17:[function(require,module,exports){
+/* globals AudioContext */
+
+const sound = () => {
+  let active = false
+
+  const audioContext = new AudioContext()
+  const hudContext = new AudioContext()
+
+  const noiseBuffer = () => {
+    const bufferSize = audioContext.sampleRate
+    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate)
+
+    let output = buffer.getChannelData(0)
+
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1
+    }
+
+    return buffer
+  }
+
+  const attack = () => {
+    if (!active) {
+      active = true
+      const startTime = audioContext.currentTime
+      const oscillator = audioContext.createOscillator()
+      const gain = audioContext.createGain()
+
+      oscillator.connect(gain)
+      gain.connect(audioContext.destination)
+
+      gain.gain.setValueAtTime(1, startTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5)
+
+      oscillator.frequency.setValueAtTime(150, startTime)
+      oscillator.frequency.exponentialRampToValueAtTime(0.001, startTime + 0.5)
+
+      oscillator.start(startTime)
+      oscillator.stop(startTime + 0.5)
+
+      setTimeout(() => {
+        active = false
+      }, 200)
+    }
+  }
+
+  const walk = () => {
+    if (!active) {
+      active = true
+      const startTime = audioContext.currentTime
+      const noise = audioContext.createBufferSource()
+      noise.buffer = noiseBuffer(audioContext)
+
+      const noiseFilter = audioContext.createBiquadFilter()
+      noiseFilter.type = 'highpass'
+      // noiseFilter.frequency.value = 1000
+      noiseFilter.frequency.value = 5000
+      noise.connect(noiseFilter)
+
+      const noiseEnvelope = audioContext.createGain()
+      noiseFilter.connect(noiseEnvelope)
+
+      noiseEnvelope.connect(audioContext.destination)
+
+      const osc = audioContext.createOscillator()
+      osc.type = 'triangle'
+
+      const oscEnvelope = audioContext.createGain()
+      osc.connect(oscEnvelope)
+
+      oscEnvelope.connect(audioContext.destination)
+
+      noiseEnvelope.gain.setValueAtTime(1, startTime)
+      noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2)
+
+      noise.start(startTime)
+
+      osc.frequency.setValueAtTime(100, startTime)
+      oscEnvelope.gain.setValueAtTime(0.7, startTime)
+      oscEnvelope.gain.exponentialRampToValueAtTime(0.01, startTime + 0.1)
+
+      osc.start(startTime)
+
+      osc.stop(startTime + 0.2)
+      noise.stop(startTime + 0.2)
+
+      setTimeout(() => {
+        active = false
+      }, 200)
+    }
+  }
+
+  const die = () => {
+    const startTime = hudContext.currentTime
+    const oscillator = hudContext.createOscillator()
+    const gain = hudContext.createGain()
+
+    oscillator.connect(gain)
+    gain.connect(hudContext.destination)
+
+    gain.gain.setValueAtTime(1, startTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 5)
+
+    oscillator.frequency.setValueAtTime(200, startTime)
+    oscillator.frequency.exponentialRampToValueAtTime(0.01, startTime + 5)
+
+    oscillator.start(startTime)
+    oscillator.stop(startTime + 5)
+  }
+
+  const gameOver = () => {
+    const startTime = hudContext.currentTime
+    const oscillator = hudContext.createOscillator()
+    const gain = hudContext.createGain()
+
+    oscillator.connect(gain)
+    gain.connect(hudContext.destination)
+
+    gain.gain.setValueAtTime(1, startTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5)
+
+    oscillator.frequency.setValueAtTime(1000, startTime)
+    oscillator.frequency.exponentialRampToValueAtTime(100, startTime + 0.5)
+
+    oscillator.start(startTime)
+    oscillator.stop(startTime + 0.5)
+  }
+
+  return {
+    attack,
+    walk,
+    die,
+    gameOver
+  }
+}
+
+module.exports = sound()
+
+},{}],18:[function(require,module,exports){
 const {TILE_DISPLAY_STEPS} = require('./constants')
 
 const createTile = ({hide = false} = {}) => {
@@ -974,10 +1128,12 @@ const createTile = ({hide = false} = {}) => {
 
 module.exports = createTile
 
-},{"./constants":7}],18:[function(require,module,exports){
+},{"./constants":7}],19:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {update} = require('./actions')
+
+const sound = require('./sound')
 
 const expect = property => isRequired({
   property,
@@ -988,8 +1144,17 @@ const createUpdate = ({
   canvas = expect('canvas'),
   ctx = expect('ctx')
 } = {}) => {
+  let triggered = false
+
   return timePassed => {
-    dataStore.dispatch(update({timePassed}))
+    const state = dataStore.getState()
+
+    if (state.gameState === 'end' && !triggered) {
+      triggered = true
+      sound.gameOver()
+    } else {
+      dataStore.dispatch(update({timePassed}))
+    }
   }
 }
 
@@ -997,4 +1162,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./actions":2,"./dataStore":8,"./isRequired":13}]},{},[11]);
+},{"./actions":2,"./dataStore":8,"./isRequired":13,"./sound":17}]},{},[11]);

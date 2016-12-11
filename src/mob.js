@@ -32,7 +32,7 @@ const mobPrototype = {
       this.health = health
       this.maxHealth = health
       this.attack = this.level + 1
-      this.xpForLevelUp = 50 * this.level + 50
+      this.xpForLevelUp = 30 * this.level + 30
     }
   }
 }
@@ -50,10 +50,10 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
   mob.health = health
   mob.maxHealth = health
   mob.attack = 1 + level
-  mob.gold = level === 0 ? 0 : Math.floor(Math.random() * level)
+  mob.gold = level === 0 ? 1 : Math.floor(Math.random() * level)
   mob.level = level
   mob.xp = 0
-  mob.xpForLevelUp = 50
+  mob.xpForLevelUp = 30
 
   return mob
 }

@@ -18,7 +18,7 @@ tap.test('mob', test => {
   test.equal(typeof player.gold, 'number', 'should have x gold')
   test.equal(typeof player.xp, 'number', 'should have xp')
   test.equal(typeof player.level, 'number', 'should have a level')
-  test.equal(player.xpForLevelUp, 50, 'should start with xpForLevelUp as 50')
+  test.equal(player.xpForLevelUp, 30, 'should start with xpForLevelUp as 50')
 
   test.end()
 })
@@ -179,7 +179,7 @@ tap.test('levelUp', test => {
   test.equal(player.level, 0)
   test.equal(player.health, 10)
   test.equal(player.attack, 1)
-  test.equal(player.xpForLevelUp, 50)
+  test.equal(player.xpForLevelUp, 30)
 
   player.levelUp()
 
@@ -187,23 +187,23 @@ tap.test('levelUp', test => {
   test.equal(player.level, 0)
   test.equal(player.health, 10)
   test.equal(player.attack, 1)
-  test.equal(player.xpForLevelUp, 50)
+  test.equal(player.xpForLevelUp, 30)
 
-  player.xp = 50
+  player.xp = 30
   player.levelUp()
 
   test.equal(player.level, 1)
   test.equal(player.health, 12)
   test.equal(player.attack, 2)
-  test.equal(player.xpForLevelUp, 100)
+  test.equal(player.xpForLevelUp, 60)
 
-  player.xp = 100
+  player.xp = 60
   player.levelUp()
 
   test.equal(player.level, 2)
   test.equal(player.health, 14)
   test.equal(player.attack, 3)
-  test.equal(player.xpForLevelUp, 150)
+  test.equal(player.xpForLevelUp, 90)
 
   test.end()
 })

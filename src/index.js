@@ -33,7 +33,10 @@ const init = () => {
 
   dataStore.dispatch(worldUpdate())
 
-  hud.innerHTML = 'Press "enter" to start.'
+  hud.innerHTML = `
+  Press "enter" to start.
+  <br/>Current highscore ${window.localStorage.getItem('maxGold') || 0} gold
+  `
 
   document.body.appendChild(hud)
 
