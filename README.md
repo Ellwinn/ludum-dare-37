@@ -1,23 +1,8 @@
 Ludum Dare 37
 =============
 
-Theme: One Room
-Idea: To create a rouge like game in a single room. The view will be hidden outsite of a radius of the player. When ever parts of the room are not viewable they can change.
+You find yourself in a room. All you can do is walk and attack the monsters in the room (both controlled by the arrow keys you find in front of you). Your task: to find as much gold as you can before you die. 
 
-The player can level up, but so can the room. Survive as long as you can
+As you progress you will level up, but so will the monsters around you.
 
-TODO
-
-- [x] Create a grid for the room
-- [x] Create a player that can move around the room
-- [x] Create a view circle around player
-- [x] Create enemies to distroy
-- [x] Enable fighting
-- [x] Enable level up
-- [x] Add enemy AI
-- [x] Add level up abilities
-- [x] Add sound FX
-- [ ] Add music
-- [ ] Update graphics
-- [ ] Shop?
-
+[Ludum Dare 37 Entry](http://ludumdare.com/compo/ludum-dare-37/?action=preview&uid=14756)
