@@ -112,6 +112,7 @@ const reducers = (state, action) => {
         const shouldCreateMob = Math.random() < 0.1
         const availableMobPositions = []
         const activeTiles = state.mobs[0].getSurroundingTiles()
+        let mobs = state.mobs
         const world = state.world.map((rows, y) => {
           return rows.map((item, x) => {
             let changed = false
@@ -128,21 +129,34 @@ const reducers = (state, action) => {
               }
             })
 
+            // hide old tiles
             if (
               !changed &&
               item !== null &&
               item.display
             ) {
               item = createTile({hide: true})
+              mobs = mobs.filter((mob, index) => {
+                if (index === 0) {
+                  return true
+                }
+                if (mob.position.x === x && mob.position.y === y) {
+                  return false
+                }
+
+                return true
+              })
             }
             return item
           })
         })
-        const mobs = state.mobs
 
-        if (shouldCreateMob) {
+        if (shouldCreateMob && availableMobPositions.length > 0) {
           const key = Math.floor(Math.random() * availableMobPositions.length)
-          mobs.push(createMob(availableMobPositions[key]))
+          const position = availableMobPositions[key]
+          if (position.x > 0 && position.y > 0) {
+            mobs.push(createMob(position))
+          }
         }
 
         return Object.assign({}, state, {world, mobs})
