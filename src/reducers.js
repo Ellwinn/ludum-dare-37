@@ -9,6 +9,7 @@ const {
 } = require('./constants')
 
 const createTile = require('./tile')
+const createMob = require('./mob')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
@@ -108,39 +109,43 @@ const reducers = (state, action) => {
 
     case reducerTypes.WORLD_UPDATE:
       {
+        const shouldCreateMob = Math.random() < 0.1
+        const availableMobPositions = []
         const activeTiles = state.mobs[0].getSurroundingTiles()
-        return Object.assign({}, state, {
-          world: state.world.map((rows, y) => {
-            return rows.map((item, x) => {
-              let changed = false
-              /*
-              if (item !== null && item.display !== false) {
-                item = createTile({hide: true})
-              }
-              */
-              activeTiles.forEach(tile => {
-                if (x === tile.x && y === tile.y) {
-                  changed = true
-                  if (
-                    item === null ||
-                    (item.remainingSteps <= 0 && item.display === false)
-                  ) {
-                    item = createTile()
-                  }
+        const world = state.world.map((rows, y) => {
+          return rows.map((item, x) => {
+            let changed = false
+            activeTiles.forEach(tile => {
+              if (x === tile.x && y === tile.y) {
+                changed = true
+                if (
+                  item === null ||
+                  (item.remainingSteps <= 0 && item.display === false)
+                ) {
+                  availableMobPositions.push({x, y})
+                  item = createTile()
                 }
-              })
-
-              if (
-                !changed &&
-                item !== null &&
-                item.display
-              ) {
-                item = createTile({hide: true})
               }
-              return item
             })
+
+            if (
+              !changed &&
+              item !== null &&
+              item.display
+            ) {
+              item = createTile({hide: true})
+            }
+            return item
           })
         })
+        const mobs = state.mobs
+
+        if (shouldCreateMob) {
+          const key = Math.floor(Math.random() * availableMobPositions.length)
+          mobs.push(createMob(availableMobPositions[key]))
+        }
+
+        return Object.assign({}, state, {world, mobs})
       }
 
     default:
