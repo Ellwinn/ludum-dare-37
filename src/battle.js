@@ -15,7 +15,7 @@ const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
     attacking.gold += defending.gold
     attacking.xp += defending.maxHealth
 
-    // TODO level up based on XP
+    attacking.levelUp()
   } else {
     attacking.health -= calculateAttackStrength(defending)
 

@@ -159,7 +159,7 @@ const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
     attacking.gold += defending.gold
     attacking.xp += defending.maxHealth
 
-    // TODO level up based on XP
+    attacking.levelUp()
   } else {
     attacking.health -= calculateAttackStrength(defending)
 
@@ -514,6 +514,18 @@ const mobPrototype = {
     }
 
     return area
+  },
+  levelUp () {
+    if (this.xp >= this.xpForLevelUp) {
+      this.level += 1
+
+      const health = 10 + (this.level * 2)
+
+      this.health = health
+      this.maxHealth = health
+      this.attack = this.level + 1
+      this.xpForLevelUp = 50 * this.level + 50
+    }
   }
 }
 
@@ -531,7 +543,9 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
   mob.maxHealth = health
   mob.attack = 1 + level
   mob.gold = level === 0 ? 0 : Math.floor(Math.random() * level)
+  mob.level = level
   mob.xp = 0
+  mob.xpForLevelUp = 50
 
   return mob
 }
@@ -733,9 +747,10 @@ const reducers = (state, action) => {
 
         if (shouldCreateMob && availableMobPositions.length > 0) {
           const key = Math.floor(Math.random() * availableMobPositions.length)
-          const position = availableMobPositions[key]
-          if (position.x > 0 && position.y > 0) {
-            mobs.push(createMob(position))
+          const data = availableMobPositions[key]
+          data.level = Math.ceil(Math.random() * state.mobs[0].level)
+          if (data.x > 0 && data.y > 0) {
+            mobs.push(createMob(data))
           }
         }
 

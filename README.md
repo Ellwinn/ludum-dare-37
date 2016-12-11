@@ -13,12 +13,12 @@ TODO
 - [x] Create a view circle around player
 - [x] Create enemies to distroy
 - [x] Enable fighting
-- [ ] Enable level up
+- [x] Enable level up
 - [ ] Add enemy AI
 - [ ] Add pick ups (gold + power ups)
 - [ ] Add level up abilities
 - [ ] Add sound FX
 - [ ] Add music
-- [ ] Create graphics
+- [ ] Update graphics
 - [ ] Shop?
 

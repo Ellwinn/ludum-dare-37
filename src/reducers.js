@@ -192,9 +192,10 @@ const reducers = (state, action) => {
 
         if (shouldCreateMob && availableMobPositions.length > 0) {
           const key = Math.floor(Math.random() * availableMobPositions.length)
-          const position = availableMobPositions[key]
-          if (position.x > 0 && position.y > 0) {
-            mobs.push(createMob(position))
+          const data = availableMobPositions[key]
+          data.level = Math.ceil(Math.random() * state.mobs[0].level)
+          if (data.x > 0 && data.y > 0) {
+            mobs.push(createMob(data))
           }
         }
 
