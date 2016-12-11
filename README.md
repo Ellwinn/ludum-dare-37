@@ -14,7 +14,7 @@ TODO
 - [x] Create enemies to distroy
 - [x] Enable fighting
 - [x] Enable level up
-- [ ] Add enemy AI
+- [x] Add enemy AI
 - [ ] Add pick ups (gold + power ups)
 - [ ] Add level up abilities
 - [ ] Add sound FX

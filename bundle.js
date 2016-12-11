@@ -141,7 +141,71 @@ module.exports = {
   setGameState
 }
 
-},{"./isRequired":12,"./reducers":14}],3:[function(require,module,exports){
+},{"./isRequired":13,"./reducers":15}],3:[function(require,module,exports){
+const isRequired = require('./isRequired')
+const battle = require('./battle')
+
+const ai = ([player, enemy] = isRequired({category: 'ai'}), mobs) => {
+  const targetPosition = player.position
+  const currentPosition = {
+    x: enemy.position.x,
+    y: enemy.position.y
+  }
+  const xDistance = targetPosition.x - currentPosition.x
+  const yDistance = targetPosition.y - currentPosition.y
+
+  let moveOnXAxis = true
+
+  if (Math.abs(xDistance) + Math.abs(yDistance) <= 1) {
+    return
+  }
+
+  if (xDistance === 0) {
+    moveOnXAxis = false
+  }
+
+  if (yDistance !== 0) {
+    moveOnXAxis = Math.random() > 0.5
+  }
+
+  if (moveOnXAxis) {
+    enemy.position.x += xDistance > 0 ? 1 : -1
+  } else {
+    enemy.position.y += yDistance > 0 ? 1 : -1
+  }
+
+  if (Math.abs(enemy.position.x - player.position.x) + Math.abs(enemy.position.y - player.position.y) === 1) {
+    battle([enemy, player])
+  }
+
+  if (enemy.position.x === player.position.x && enemy.position.y === player.position.y) {
+    // reverse move
+    if (moveOnXAxis) {
+      enemy.position.x += xDistance > 0 ? -1 : 1
+    } else {
+      enemy.position.y += yDistance > 0 ? -1 : 1
+    }
+  }
+
+  let reset = false
+  mobs.forEach(compare => {
+    if (
+      compare.position.x === enemy.position.x &&
+      compare.position.y === enemy.position.y &&
+      compare.id !== enemy.id
+    ) {
+      reset = true
+    }
+  })
+
+  if (reset) {
+    enemy.position = currentPosition
+  }
+}
+
+module.exports = ai
+
+},{"./battle":4,"./isRequired":13}],4:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const calculateAttackStrength = (mob) => {
@@ -173,7 +237,7 @@ const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
 
 module.exports = battle
 
-},{"./isRequired":12}],4:[function(require,module,exports){
+},{"./isRequired":13}],5:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const createBus = ({
@@ -226,7 +290,7 @@ module.exports = {
   createBus
 }
 
-},{"./isRequired":12}],5:[function(require,module,exports){
+},{"./isRequired":13}],6:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const collision = ({
@@ -248,7 +312,7 @@ const collision = ({
 
 module.exports = collision
 
-},{"./isRequired":12}],6:[function(require,module,exports){
+},{"./isRequired":13}],7:[function(require,module,exports){
 const constants = {
   TILE_SIZE: 4,
   WORLD_WIDTH: 15,
@@ -274,7 +338,7 @@ const constants = {
 
 module.exports = constants
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
 const mob = require('./mob')
@@ -296,7 +360,7 @@ const defaultState = {
 
 module.exports = createBus({reducers, defaultState})
 
-},{"./bus":4,"./constants":6,"./mob":13,"./reducers":14}],8:[function(require,module,exports){
+},{"./bus":5,"./constants":7,"./mob":14,"./reducers":15}],9:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const loop = require('lb-loop')
 const {createUpdate} = require('./update')
@@ -326,7 +390,7 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":12,"./render":15,"./update":17,"lb-loop":1}],9:[function(require,module,exports){
+},{"./isRequired":13,"./render":16,"./update":18,"lb-loop":1}],10:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const heal = (mob = isRequired({category: 'heal'})) => {
@@ -339,7 +403,7 @@ const heal = (mob = isRequired({category: 'heal'})) => {
 
 module.exports = heal
 
-},{"./isRequired":12}],10:[function(require,module,exports){
+},{"./isRequired":13}],11:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
 const input = require('./input')
@@ -378,11 +442,18 @@ const init = () => {
   hud.innerHTML = 'Press "enter" to start.'
 
   document.body.appendChild(hud)
+
+  const rules = document.createElement('p')
+  rules.innerHTML = `
+  Use the arrow keys to move. Stay alive and get as much gold as you can.
+  To attack just move in the direction of the enemy player.
+  `
+  document.body.appendChild(rules)
 }
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./actions":2,"./constants":6,"./dataStore":7,"./game":8,"./input":11}],11:[function(require,module,exports){
+},{"./actions":2,"./constants":7,"./dataStore":8,"./game":9,"./input":12}],12:[function(require,module,exports){
 let playerId = null
 
 const {
@@ -480,7 +551,7 @@ module.exports = {
   stop
 }
 
-},{"./actions":2,"./constants":6,"./dataStore":7}],12:[function(require,module,exports){
+},{"./actions":2,"./constants":7,"./dataStore":8}],13:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -489,7 +560,7 @@ const isRequired = ({category = null, property = null} = {}) => {
 
 module.exports = isRequired
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 const {VIEW_RANGE} = require('./constants')
 
 const mobPrototype = {
@@ -552,7 +623,7 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
 
 module.exports = createMob
 
-},{"./constants":6}],14:[function(require,module,exports){
+},{"./constants":7}],15:[function(require,module,exports){
 const {
   NORTH,
   SOUTH,
@@ -568,6 +639,7 @@ const createMob = require('./mob')
 const collision = require('./collision')
 const battle = require('./battle')
 const heal = require('./heal')
+const ai = require('./ai')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
@@ -581,7 +653,11 @@ const reducers = (state, action) => {
   switch (action.type) {
     case reducerTypes.MOB_MOVE:
       return Object.assign({}, state, {
-        mobs: state.mobs.map(mob => {
+        mobs: state.mobs.map((mob, index) => {
+          if (index !== 0) {
+            ai([state.mobs[0], mob], state.mobs)
+          }
+
           if (mob.id !== action.id) {
             return mob
           }
@@ -640,6 +716,7 @@ const reducers = (state, action) => {
             mob.direction = action.direction
             heal(mob)
           }
+
           return mob
         })
       })
@@ -772,7 +849,7 @@ module.exports = {
   reducers
 }
 
-},{"./battle":3,"./collision":5,"./constants":6,"./heal":9,"./mob":13,"./tile":16}],15:[function(require,module,exports){
+},{"./ai":3,"./battle":4,"./collision":6,"./constants":7,"./heal":10,"./mob":14,"./tile":17}],16:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
@@ -884,7 +961,7 @@ module.exports = {
   createRender
 }
 
-},{"./constants":6,"./dataStore":7,"./isRequired":12}],16:[function(require,module,exports){
+},{"./constants":7,"./dataStore":8,"./isRequired":13}],17:[function(require,module,exports){
 const {TILE_DISPLAY_STEPS} = require('./constants')
 
 const createTile = ({hide = false} = {}) => {
@@ -897,7 +974,7 @@ const createTile = ({hide = false} = {}) => {
 
 module.exports = createTile
 
-},{"./constants":6}],17:[function(require,module,exports){
+},{"./constants":7}],18:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {update} = require('./actions')
@@ -920,4 +997,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./actions":2,"./dataStore":7,"./isRequired":12}]},{},[10]);
+},{"./actions":2,"./dataStore":8,"./isRequired":13}]},{},[11]);

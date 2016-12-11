@@ -13,6 +13,7 @@ const createMob = require('./mob')
 const collision = require('./collision')
 const battle = require('./battle')
 const heal = require('./heal')
+const ai = require('./ai')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
@@ -26,7 +27,11 @@ const reducers = (state, action) => {
   switch (action.type) {
     case reducerTypes.MOB_MOVE:
       return Object.assign({}, state, {
-        mobs: state.mobs.map(mob => {
+        mobs: state.mobs.map((mob, index) => {
+          if (index !== 0) {
+            ai([state.mobs[0], mob], state.mobs)
+          }
+
           if (mob.id !== action.id) {
             return mob
           }
@@ -85,6 +90,7 @@ const reducers = (state, action) => {
             mob.direction = action.direction
             heal(mob)
           }
+
           return mob
         })
       })

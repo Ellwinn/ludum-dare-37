@@ -36,6 +36,13 @@ const init = () => {
   hud.innerHTML = 'Press "enter" to start.'
 
   document.body.appendChild(hud)
+
+  const rules = document.createElement('p')
+  rules.innerHTML = `
+  Use the arrow keys to move. Stay alive and get as much gold as you can.
+  To attack just move in the direction of the enemy player.
+  `
+  document.body.appendChild(rules)
 }
 
 window.addEventListener('DOMContentLoaded', init)
