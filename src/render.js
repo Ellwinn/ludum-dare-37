@@ -19,65 +19,89 @@ const expect = property => isRequired({
 
 const createRender = ({
   canvas = expect('canvas'),
-  ctx = expect('ctx')
+  ctx = expect('ctx'),
+  hud = expect('hud')
 } = {}) => {
   return () => {
     const state = dataStore.getState()
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    switch (state.gameState) {
+      case 'start':
+        // do nothing
+        break
+      case 'end':
+        ctx.fillStyle = COLOR_RED
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        hud.innerHTML = `
+          You died with ${state.mobs[0].gold} gold<br/>
+          Press "enter" to try again
+        `
+        break
+      default:
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    state.world.forEach((row, y) => {
-      row.forEach((item, x) => {
-        if (item !== null) {
-          const alpha = item.display ? (
-            1 - (item.remainingSteps / TILE_DISPLAY_STEPS)
-          ) : (
-            item.remainingSteps / TILE_DISPLAY_STEPS
-          )
-          // ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
-          ctx.fillStyle = item.color
-            .replace(/^hsl/, 'hsla')
-            .replace(/\)$/, `, ${alpha})`)
-          ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-        }
-      })
-    })
+        state.world.forEach((row, y) => {
+          row.forEach((item, x) => {
+            if (item !== null) {
+              const alpha = item.display ? (
+                1 - (item.remainingSteps / TILE_DISPLAY_STEPS)
+              ) : (
+                item.remainingSteps / TILE_DISPLAY_STEPS
+              )
+              // ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
+              ctx.fillStyle = item.color
+                .replace(/^hsl/, 'hsla')
+                .replace(/\)$/, `, ${alpha})`)
+              ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            }
+          })
+        })
 
-    state.mobs.forEach((mob, index) => {
-      let x = mob.position.x * TILE_SIZE
-      let y = mob.position.y * TILE_SIZE
+        state.mobs.forEach((mob, index) => {
+          let x = mob.position.x * TILE_SIZE
+          let y = mob.position.y * TILE_SIZE
 
-      if (mob.active && mob.remainingStops !== 0) {
-        const offset = (mob.remainingSteps / MOB_MOVE_STEPS) * TILE_SIZE
-        switch (mob.direction) {
-          case NORTH:
-            y += offset
-            break
-          case SOUTH:
-            y -= offset
-            break
-          case EAST:
-            x -= offset
-            break
-          case WEST:
-            x += offset
-            break
-        }
-      }
+          if (mob.active && mob.remainingStops !== 0) {
+            const offset = (mob.remainingSteps / MOB_MOVE_STEPS) * TILE_SIZE
+            switch (mob.direction) {
+              case NORTH:
+                y += offset
+                break
+              case SOUTH:
+                y -= offset
+                break
+              case EAST:
+                x -= offset
+                break
+              case WEST:
+                x += offset
+                break
+            }
+          }
 
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
-      ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE)
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
+          ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE)
 
-      const percentageHealth = mob.health / mob.maxHealth
-      const percentWidth = Math.floor(percentageHealth * TILE_SIZE)
-      ctx.fillStyle = COLOR_GREEN
-      ctx.fillRect(0, 0, percentWidth, 1)
-      ctx.fillStyle = COLOR_RED
-      ctx.fillRect(percentWidth, 0, TILE_SIZE - percentWidth, 1)
-      ctx.restore()
-    })
+          const percentageHealth = mob.health / mob.maxHealth
+          const percentWidth = Math.floor(percentageHealth * TILE_SIZE)
+          ctx.fillStyle = COLOR_GREEN
+          ctx.fillRect(0, 0, percentWidth, 1)
+          ctx.fillStyle = COLOR_RED
+          ctx.fillRect(percentWidth, 0, TILE_SIZE - percentWidth, 1)
+          ctx.restore()
+        })
+
+        const player = state.mobs[0]
+        hud.innerHTML = `
+          Health: ${player.health}/${player.maxHealth}
+          Attack: ${player.attack}
+          Gold: ${player.gold}
+          XP: ${player.xp}
+        `
+        break
+    }
   }
 }
 

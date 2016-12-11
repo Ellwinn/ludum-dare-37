@@ -15,6 +15,8 @@ const {
 const init = () => {
   window.removeEventListener('DOMContentLoaded', init)
 
+  const hud = document.createElement('p')
+
   const canvas = document.createElement('canvas')
   canvas.width = TILE_SIZE * WORLD_WIDTH
   canvas.height = TILE_SIZE * WORLD_HEIGHT
@@ -23,13 +25,17 @@ const init = () => {
 
   const ctx = canvas.getContext('2d')
 
-  game({canvas, ctx, dataStore})
+  game({canvas, ctx, dataStore, hud})
   document.body.appendChild(canvas)
 
   const state = dataStore.getState()
   input.start(state.mobs[0].id)
 
   dataStore.dispatch(worldUpdate())
+
+  hud.innerHTML = 'Press "enter" to start.'
+
+  document.body.appendChild(hud)
 }
 
 window.addEventListener('DOMContentLoaded', init)

@@ -123,15 +123,57 @@ const worldUpdate = () => {
   }
 }
 
+const setGameState = ({
+  state = isRequired({category: 'setGameState', property: 'state'})
+} = {}) => {
+  return {
+    state,
+    type: reducerTypes.SET_GAME_STATE
+  }
+}
+
 module.exports = {
   mobMove,
   mobIdle,
   update,
   worldCreateTile,
-  worldUpdate
+  worldUpdate,
+  setGameState
 }
 
-},{"./isRequired":10,"./reducers":12}],3:[function(require,module,exports){
+},{"./isRequired":12,"./reducers":14}],3:[function(require,module,exports){
+const isRequired = require('./isRequired')
+
+const calculateAttackStrength = (mob) => {
+  const attack = mob.attack
+  const percentageHealth = mob.health / mob.maxHealth
+  return Math.ceil(Math.random() * (attack * percentageHealth))
+}
+
+const battle = ([attacking, defending] = isRequired({category: 'battle'})) => {
+  defending.health -= calculateAttackStrength(attacking)
+
+  if (defending.health <= 0) {
+    defending.health = 0
+
+    attacking.gold += defending.gold
+    attacking.xp += defending.maxHealth
+
+    // TODO level up based on XP
+  } else {
+    attacking.health -= calculateAttackStrength(defending)
+
+    if (attacking.health < 0) {
+      attacking.health = 0
+    }
+  }
+
+  return [attacking, defending]
+}
+
+module.exports = battle
+
+},{"./isRequired":12}],4:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const createBus = ({
@@ -184,7 +226,7 @@ module.exports = {
   createBus
 }
 
-},{"./isRequired":10}],4:[function(require,module,exports){
+},{"./isRequired":12}],5:[function(require,module,exports){
 const isRequired = require('./isRequired')
 
 const collision = ({
@@ -206,7 +248,7 @@ const collision = ({
 
 module.exports = collision
 
-},{"./isRequired":10}],5:[function(require,module,exports){
+},{"./isRequired":12}],6:[function(require,module,exports){
 const constants = {
   TILE_SIZE: 4,
   WORLD_WIDTH: 15,
@@ -232,7 +274,7 @@ const constants = {
 
 module.exports = constants
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const {createBus} = require('./bus')
 const {reducers} = require('./reducers')
 const mob = require('./mob')
@@ -248,12 +290,13 @@ const defaultState = {
       x: Math.round((WORLD_WIDTH - 1) * 0.5),
       y: Math.round((WORLD_HEIGHT - 1) * 0.5)
     })
-  ]
+  ],
+  gameState: 'start'
 }
 
 module.exports = createBus({reducers, defaultState})
 
-},{"./bus":3,"./constants":5,"./mob":11,"./reducers":12}],7:[function(require,module,exports){
+},{"./bus":4,"./constants":6,"./mob":13,"./reducers":14}],8:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const loop = require('lb-loop')
 const {createUpdate} = require('./update')
@@ -266,10 +309,12 @@ const expect = property => isRequired({
 
 module.exports = ({
   canvas = expect('canvas'),
-  ctx = expect('ctx')
+  ctx = expect('ctx'),
+  dataStore = expect('dataStore'),
+  hud = expect('hud')
 } = {}) => {
   const update = createUpdate({canvas, ctx})
-  const render = createRender({canvas, ctx})
+  const render = createRender({canvas, ctx, hud})
 
   const game = loop({
     update,
@@ -281,7 +326,20 @@ module.exports = ({
   return game
 }
 
-},{"./isRequired":10,"./render":13,"./update":15,"lb-loop":1}],8:[function(require,module,exports){
+},{"./isRequired":12,"./render":15,"./update":17,"lb-loop":1}],9:[function(require,module,exports){
+const isRequired = require('./isRequired')
+
+const heal = (mob = isRequired({category: 'heal'})) => {
+  mob.health += 1
+
+  if (mob.health > mob.maxHealth) {
+    mob.health = mob.maxHealth
+  }
+}
+
+module.exports = heal
+
+},{"./isRequired":12}],10:[function(require,module,exports){
 const game = require('./game')
 const dataStore = require('./dataStore')
 const input = require('./input')
@@ -299,6 +357,8 @@ const {
 const init = () => {
   window.removeEventListener('DOMContentLoaded', init)
 
+  const hud = document.createElement('p')
+
   const canvas = document.createElement('canvas')
   canvas.width = TILE_SIZE * WORLD_WIDTH
   canvas.height = TILE_SIZE * WORLD_HEIGHT
@@ -307,18 +367,22 @@ const init = () => {
 
   const ctx = canvas.getContext('2d')
 
-  game({canvas, ctx, dataStore})
+  game({canvas, ctx, dataStore, hud})
   document.body.appendChild(canvas)
 
   const state = dataStore.getState()
   input.start(state.mobs[0].id)
 
   dataStore.dispatch(worldUpdate())
+
+  hud.innerHTML = 'Press "enter" to start.'
+
+  document.body.appendChild(hud)
 }
 
 window.addEventListener('DOMContentLoaded', init)
 
-},{"./actions":2,"./constants":5,"./dataStore":6,"./game":7,"./input":9}],9:[function(require,module,exports){
+},{"./actions":2,"./constants":6,"./dataStore":7,"./game":8,"./input":11}],11:[function(require,module,exports){
 let playerId = null
 
 const {
@@ -338,12 +402,27 @@ const {
 
 const {
   mobMove,
-  worldUpdate
+  worldUpdate,
+  setGameState
 } = require('./actions')
+
 const dataStore = require('./dataStore')
 
 const handleKeyDown = event => {
   let updateWorld = false
+  const state = dataStore.getState()
+
+  if (event.keyCode === 13 && state.gameState === 'start') {
+    dataStore.dispatch(setGameState({state: 'main'}))
+  }
+
+  if (event.keyCode === 13 && state.gameState === 'end') {
+    window.location.reload()
+  }
+
+  if (state.gameState !== 'main') {
+    return
+  }
 
   switch (event.keyCode) {
     case KEY_LEFT:
@@ -401,7 +480,7 @@ module.exports = {
   stop
 }
 
-},{"./actions":2,"./constants":5,"./dataStore":6}],10:[function(require,module,exports){
+},{"./actions":2,"./constants":6,"./dataStore":7}],12:[function(require,module,exports){
 const isRequired = ({category = null, property = null} = {}) => {
   const prefix = category ? `[${category}] ` : ''
   const message = property ? `The property "${property}" is required` : 'Missing required property'
@@ -410,7 +489,7 @@ const isRequired = ({category = null, property = null} = {}) => {
 
 module.exports = isRequired
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 const {VIEW_RANGE} = require('./constants')
 
 const mobPrototype = {
@@ -452,13 +531,14 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
   mob.maxHealth = health
   mob.attack = 1 + level
   mob.gold = level === 0 ? 0 : Math.floor(Math.random() * level)
+  mob.xp = 0
 
   return mob
 }
 
 module.exports = createMob
 
-},{"./constants":5}],12:[function(require,module,exports){
+},{"./constants":6}],14:[function(require,module,exports){
 const {
   NORTH,
   SOUTH,
@@ -472,12 +552,15 @@ const {
 const createTile = require('./tile')
 const createMob = require('./mob')
 const collision = require('./collision')
+const battle = require('./battle')
+const heal = require('./heal')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
   MOB_MOVE: 'MOB_MOVE',
   WORLD_CREATE_TILE: 'WORLD_CREATE_TILE',
-  WORLD_UPDATE: 'WORLD_UPDATE'
+  WORLD_UPDATE: 'WORLD_UPDATE',
+  SET_GAME_STATE: 'SET_GAME_STATE'
 }
 
 const reducers = (state, action) => {
@@ -530,6 +613,8 @@ const reducers = (state, action) => {
 
             collisions.forEach(id => {
               mob.position = originalPosition
+              const defender = state.mobs.filter(mob => mob.id === id)[0]
+              battle([mob, defender])
             })
 
             if (collisions.length > 0) {
@@ -539,41 +624,55 @@ const reducers = (state, action) => {
             mob.active = true
             mob.remainingSteps = MOB_MOVE_STEPS
             mob.direction = action.direction
+            heal(mob)
           }
           return mob
         })
       })
 
     case reducerTypes.UPDATE:
-      return Object.assign({}, state, {
-        world: state.world.map((row, y) => {
-          return row.map((tile, x) => {
-            if (tile !== null) {
-              if (tile.remainingSteps > 0) {
-                tile.remainingSteps -= action.timePassed
+      {
+        let gameEnd = false
+        return Object.assign({}, state, {
+          world: state.world.map((row, y) => {
+            return row.map((tile, x) => {
+              if (tile !== null) {
+                if (tile.remainingSteps > 0) {
+                  tile.remainingSteps -= action.timePassed
+                }
+
+                if (tile.remainingSteps <= 0) {
+                  tile.remainingSteps = 0
+                }
               }
 
-              if (tile.remainingSteps <= 0) {
-                tile.remainingSteps = 0
+              return tile
+            })
+          }),
+          mobs: state.mobs.map((mob, index) => {
+            if (mob.health === 0) {
+              if (index === 0) {
+                gameEnd = true
+              } else {
+                return null
               }
             }
 
-            return tile
+            if (mob.active) {
+              mob.remainingSteps -= action.timePassed
+            }
+
+            if (mob.remainingSteps <= 0) {
+              mob.remainingSteps = 0
+              mob.active = false
+            }
+
+            return mob
           })
-        }),
-        mobs: state.mobs.map(mob => {
-          if (mob.active) {
-            mob.remainingSteps -= action.timePassed
-          }
-
-          if (mob.remainingSteps <= 0) {
-            mob.remainingSteps = 0
-            mob.active = false
-          }
-
-          return mob
+            .filter(item => item !== null),
+          gameState: gameEnd ? 'end' : state.gameState
         })
-      })
+      }
 
     case reducerTypes.WORLD_CREATE_TILE:
       return Object.assign({}, state, {
@@ -643,6 +742,11 @@ const reducers = (state, action) => {
         return Object.assign({}, state, {world, mobs})
       }
 
+    case reducerTypes.SET_GAME_STATE:
+      return Object.assign({}, state, {
+        gameState: action.state
+      })
+
     default:
       return Object.assign({}, state)
   }
@@ -653,7 +757,7 @@ module.exports = {
   reducers
 }
 
-},{"./collision":4,"./constants":5,"./mob":11,"./tile":14}],13:[function(require,module,exports){
+},{"./battle":3,"./collision":5,"./constants":6,"./heal":9,"./mob":13,"./tile":16}],15:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {
@@ -675,65 +779,89 @@ const expect = property => isRequired({
 
 const createRender = ({
   canvas = expect('canvas'),
-  ctx = expect('ctx')
+  ctx = expect('ctx'),
+  hud = expect('hud')
 } = {}) => {
   return () => {
     const state = dataStore.getState()
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    switch (state.gameState) {
+      case 'start':
+        // do nothing
+        break
+      case 'end':
+        ctx.fillStyle = COLOR_RED
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        hud.innerHTML = `
+          You died with ${state.mobs[0].gold} gold<br/>
+          Press "enter" to try again
+        `
+        break
+      default:
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    state.world.forEach((row, y) => {
-      row.forEach((item, x) => {
-        if (item !== null) {
-          const alpha = item.display ? (
-            1 - (item.remainingSteps / TILE_DISPLAY_STEPS)
-          ) : (
-            item.remainingSteps / TILE_DISPLAY_STEPS
-          )
-          // ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
-          ctx.fillStyle = item.color
-            .replace(/^hsl/, 'hsla')
-            .replace(/\)$/, `, ${alpha})`)
-          ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-        }
-      })
-    })
+        state.world.forEach((row, y) => {
+          row.forEach((item, x) => {
+            if (item !== null) {
+              const alpha = item.display ? (
+                1 - (item.remainingSteps / TILE_DISPLAY_STEPS)
+              ) : (
+                item.remainingSteps / TILE_DISPLAY_STEPS
+              )
+              // ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
+              ctx.fillStyle = item.color
+                .replace(/^hsl/, 'hsla')
+                .replace(/\)$/, `, ${alpha})`)
+              ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            }
+          })
+        })
 
-    state.mobs.forEach((mob, index) => {
-      let x = mob.position.x * TILE_SIZE
-      let y = mob.position.y * TILE_SIZE
+        state.mobs.forEach((mob, index) => {
+          let x = mob.position.x * TILE_SIZE
+          let y = mob.position.y * TILE_SIZE
 
-      if (mob.active && mob.remainingStops !== 0) {
-        const offset = (mob.remainingSteps / MOB_MOVE_STEPS) * TILE_SIZE
-        switch (mob.direction) {
-          case NORTH:
-            y += offset
-            break
-          case SOUTH:
-            y -= offset
-            break
-          case EAST:
-            x -= offset
-            break
-          case WEST:
-            x += offset
-            break
-        }
-      }
+          if (mob.active && mob.remainingStops !== 0) {
+            const offset = (mob.remainingSteps / MOB_MOVE_STEPS) * TILE_SIZE
+            switch (mob.direction) {
+              case NORTH:
+                y += offset
+                break
+              case SOUTH:
+                y -= offset
+                break
+              case EAST:
+                x -= offset
+                break
+              case WEST:
+                x += offset
+                break
+            }
+          }
 
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
-      ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE)
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
+          ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE)
 
-      const percentageHealth = mob.health / mob.maxHealth
-      const percentWidth = Math.floor(percentageHealth * TILE_SIZE)
-      ctx.fillStyle = COLOR_GREEN
-      ctx.fillRect(0, 0, percentWidth, 1)
-      ctx.fillStyle = COLOR_RED
-      ctx.fillRect(percentWidth, 0, TILE_SIZE - percentWidth, 1)
-      ctx.restore()
-    })
+          const percentageHealth = mob.health / mob.maxHealth
+          const percentWidth = Math.floor(percentageHealth * TILE_SIZE)
+          ctx.fillStyle = COLOR_GREEN
+          ctx.fillRect(0, 0, percentWidth, 1)
+          ctx.fillStyle = COLOR_RED
+          ctx.fillRect(percentWidth, 0, TILE_SIZE - percentWidth, 1)
+          ctx.restore()
+        })
+
+        const player = state.mobs[0]
+        hud.innerHTML = `
+          Health: ${player.health}/${player.maxHealth}
+          Attack: ${player.attack}
+          Gold: ${player.gold}
+          XP: ${player.xp}
+        `
+        break
+    }
   }
 }
 
@@ -741,7 +869,7 @@ module.exports = {
   createRender
 }
 
-},{"./constants":5,"./dataStore":6,"./isRequired":10}],14:[function(require,module,exports){
+},{"./constants":6,"./dataStore":7,"./isRequired":12}],16:[function(require,module,exports){
 const {TILE_DISPLAY_STEPS} = require('./constants')
 
 const createTile = ({hide = false} = {}) => {
@@ -754,7 +882,7 @@ const createTile = ({hide = false} = {}) => {
 
 module.exports = createTile
 
-},{"./constants":5}],15:[function(require,module,exports){
+},{"./constants":6}],17:[function(require,module,exports){
 const isRequired = require('./isRequired')
 const dataStore = require('./dataStore')
 const {update} = require('./actions')
@@ -777,4 +905,4 @@ module.exports = {
   createUpdate
 }
 
-},{"./actions":2,"./dataStore":6,"./isRequired":10}]},{},[8]);
+},{"./actions":2,"./dataStore":7,"./isRequired":12}]},{},[10]);

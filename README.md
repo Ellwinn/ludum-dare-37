@@ -12,7 +12,8 @@ TODO
 - [x] Create a player that can move around the room
 - [x] Create a view circle around player
 - [x] Create enemies to distroy
-- [ ] Enable fighting
+- [x] Enable fighting
+- [ ] Enable level up
 - [ ] Add enemy AI
 - [ ] Add pick ups (gold + power ups)
 - [ ] Add level up abilities

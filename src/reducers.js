@@ -11,12 +11,15 @@ const {
 const createTile = require('./tile')
 const createMob = require('./mob')
 const collision = require('./collision')
+const battle = require('./battle')
+const heal = require('./heal')
 
 const reducerTypes = {
   UPDATE: 'UPDATE',
   MOB_MOVE: 'MOB_MOVE',
   WORLD_CREATE_TILE: 'WORLD_CREATE_TILE',
-  WORLD_UPDATE: 'WORLD_UPDATE'
+  WORLD_UPDATE: 'WORLD_UPDATE',
+  SET_GAME_STATE: 'SET_GAME_STATE'
 }
 
 const reducers = (state, action) => {
@@ -69,6 +72,8 @@ const reducers = (state, action) => {
 
             collisions.forEach(id => {
               mob.position = originalPosition
+              const defender = state.mobs.filter(mob => mob.id === id)[0]
+              battle([mob, defender])
             })
 
             if (collisions.length > 0) {
@@ -78,41 +83,55 @@ const reducers = (state, action) => {
             mob.active = true
             mob.remainingSteps = MOB_MOVE_STEPS
             mob.direction = action.direction
+            heal(mob)
           }
           return mob
         })
       })
 
     case reducerTypes.UPDATE:
-      return Object.assign({}, state, {
-        world: state.world.map((row, y) => {
-          return row.map((tile, x) => {
-            if (tile !== null) {
-              if (tile.remainingSteps > 0) {
-                tile.remainingSteps -= action.timePassed
+      {
+        let gameEnd = false
+        return Object.assign({}, state, {
+          world: state.world.map((row, y) => {
+            return row.map((tile, x) => {
+              if (tile !== null) {
+                if (tile.remainingSteps > 0) {
+                  tile.remainingSteps -= action.timePassed
+                }
+
+                if (tile.remainingSteps <= 0) {
+                  tile.remainingSteps = 0
+                }
               }
 
-              if (tile.remainingSteps <= 0) {
-                tile.remainingSteps = 0
+              return tile
+            })
+          }),
+          mobs: state.mobs.map((mob, index) => {
+            if (mob.health === 0) {
+              if (index === 0) {
+                gameEnd = true
+              } else {
+                return null
               }
             }
 
-            return tile
+            if (mob.active) {
+              mob.remainingSteps -= action.timePassed
+            }
+
+            if (mob.remainingSteps <= 0) {
+              mob.remainingSteps = 0
+              mob.active = false
+            }
+
+            return mob
           })
-        }),
-        mobs: state.mobs.map(mob => {
-          if (mob.active) {
-            mob.remainingSteps -= action.timePassed
-          }
-
-          if (mob.remainingSteps <= 0) {
-            mob.remainingSteps = 0
-            mob.active = false
-          }
-
-          return mob
+            .filter(item => item !== null),
+          gameState: gameEnd ? 'end' : state.gameState
         })
-      })
+      }
 
     case reducerTypes.WORLD_CREATE_TILE:
       return Object.assign({}, state, {
@@ -181,6 +200,11 @@ const reducers = (state, action) => {
 
         return Object.assign({}, state, {world, mobs})
       }
+
+    case reducerTypes.SET_GAME_STATE:
+      return Object.assign({}, state, {
+        gameState: action.state
+      })
 
     default:
       return Object.assign({}, state)

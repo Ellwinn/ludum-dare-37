@@ -17,12 +17,27 @@ const {
 
 const {
   mobMove,
-  worldUpdate
+  worldUpdate,
+  setGameState
 } = require('./actions')
+
 const dataStore = require('./dataStore')
 
 const handleKeyDown = event => {
   let updateWorld = false
+  const state = dataStore.getState()
+
+  if (event.keyCode === 13 && state.gameState === 'start') {
+    dataStore.dispatch(setGameState({state: 'main'}))
+  }
+
+  if (event.keyCode === 13 && state.gameState === 'end') {
+    window.location.reload()
+  }
+
+  if (state.gameState !== 'main') {
+    return
+  }
 
   switch (event.keyCode) {
     case KEY_LEFT:

@@ -10,7 +10,8 @@ const {
 const {
   mobMove,
   update,
-  worldCreateTile
+  worldCreateTile,
+  setGameState
 } = require('./actions')
 
 const {
@@ -23,6 +24,7 @@ tap.test('reducerTypes', test => {
   test.equal(reducerTypes.MOB_MOVE, 'MOB_MOVE')
   test.equal(reducerTypes.WORLD_CREATE_TILE, 'WORLD_CREATE_TILE')
   test.equal(reducerTypes.WORLD_UPDATE, 'WORLD_UPDATE')
+  test.equal(reducerTypes.SET_GAME_STATE, 'SET_GAME_STATE')
 
   test.end()
 })
@@ -206,3 +208,17 @@ tap.test('reducers: worldUpdate', test => {
   test.end()
 })
 */
+
+tap.test('set game type', test => {
+  const defaultState = {
+    gameState: 'main'
+  }
+  const action = setGameState({
+    state: 'end'
+  })
+  const state = reducers(defaultState, action)
+
+  test.equal(state.gameState, 'end')
+
+  test.end()
+})

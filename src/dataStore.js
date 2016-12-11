@@ -13,7 +13,8 @@ const defaultState = {
       x: Math.round((WORLD_WIDTH - 1) * 0.5),
       y: Math.round((WORLD_HEIGHT - 1) * 0.5)
     })
-  ]
+  ],
+  gameState: 'start'
 }
 
 module.exports = createBus({reducers, defaultState})

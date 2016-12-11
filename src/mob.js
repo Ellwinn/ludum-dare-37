@@ -39,6 +39,7 @@ const createMob = ({x = 0, y = 0, level = 0} = {}) => {
   mob.maxHealth = health
   mob.attack = 1 + level
   mob.gold = level === 0 ? 0 : Math.floor(Math.random() * level)
+  mob.xp = 0
 
   return mob
 }

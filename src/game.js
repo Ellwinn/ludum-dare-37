@@ -10,10 +10,12 @@ const expect = property => isRequired({
 
 module.exports = ({
   canvas = expect('canvas'),
-  ctx = expect('ctx')
+  ctx = expect('ctx'),
+  dataStore = expect('dataStore'),
+  hud = expect('hud')
 } = {}) => {
   const update = createUpdate({canvas, ctx})
-  const render = createRender({canvas, ctx})
+  const render = createRender({canvas, ctx, hud})
 
   const game = loop({
     update,

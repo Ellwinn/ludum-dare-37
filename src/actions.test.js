@@ -3,7 +3,8 @@ const {
   mobMove,
   update,
   worldCreateTile,
-  worldUpdate
+  worldUpdate,
+  setGameState
 } = require('./actions')
 const {reducerTypes} = require('./reducers')
 
@@ -69,5 +70,23 @@ tap.test('worldCreateTile', test => {
 
 tap.test('worldUpdate', test => {
   test.equal(worldUpdate().type, reducerTypes.WORLD_UPDATE)
+  test.end()
+})
+
+tap.test('setGameState', test => {
+  try {
+    setGameState()
+    test.fail('setGameState should require a status')
+  } catch (error) {
+    test.equal(error.message, '[setGameState] The property "state" is required')
+  }
+
+  const action = setGameState({
+    state: 'foo'
+  })
+
+  test.equal(action.type, reducerTypes.SET_GAME_STATE)
+  test.equal(action.state, 'foo')
+
   test.end()
 })

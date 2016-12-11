@@ -51,10 +51,20 @@ const worldUpdate = () => {
   }
 }
 
+const setGameState = ({
+  state = isRequired({category: 'setGameState', property: 'state'})
+} = {}) => {
+  return {
+    state,
+    type: reducerTypes.SET_GAME_STATE
+  }
+}
+
 module.exports = {
   mobMove,
   mobIdle,
   update,
   worldCreateTile,
-  worldUpdate
+  worldUpdate,
+  setGameState
 }

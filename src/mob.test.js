@@ -16,6 +16,7 @@ tap.test('mob', test => {
   test.equal(player.maxHealth, 10, 'should set max health')
   test.equal(player.attack, 1, 'should start with poor attack')
   test.equal(typeof player.gold, 'number', 'should have x gold')
+  test.equal(typeof player.xp, 'number', 'should have xp')
 
   test.end()
 })
