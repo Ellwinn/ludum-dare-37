@@ -27,6 +27,8 @@ const reducers = (state, action) => {
             return mob
           }
 
+          // TODO test for collisions with existing mobs
+
           if (!mob.active) {
             switch (action.direction) {
               case SOUTH:

@@ -456,6 +456,8 @@ const reducers = (state, action) => {
             return mob
           }
 
+          // TODO test for collisions with existing mobs
+
           if (!mob.active) {
             switch (action.direction) {
               case SOUTH:
@@ -636,13 +638,16 @@ const createRender = ({
           ) : (
             item.remainingSteps / TILE_DISPLAY_STEPS
           )
-          ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
+          // ctx.fillStyle = `hsla(200, 50%, 50%, ${alpha})`
+          ctx.fillStyle = item.color
+            .replace(/^hsl/, 'hsla')
+            .replace(/\)$/, `, ${alpha})`)
           ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
         }
       })
     })
 
-    state.mobs.forEach(mob => {
+    state.mobs.forEach((mob, index) => {
       let x = mob.position.x * TILE_SIZE
       let y = mob.position.y * TILE_SIZE
 
@@ -664,7 +669,7 @@ const createRender = ({
         }
       }
 
-      ctx.fillStyle = '#000'
+      ctx.fillStyle = `hsl(${index === 0 ? 170 : 350}, 50%, 50%)`
       ctx.save()
       ctx.translate(x, y)
       ctx.fillRect(1, 1, 30, 30)
@@ -683,7 +688,8 @@ const {TILE_DISPLAY_STEPS} = require('./constants')
 const createTile = ({hide = false} = {}) => {
   return {
     display: !hide,
-    remainingSteps: TILE_DISPLAY_STEPS
+    remainingSteps: TILE_DISPLAY_STEPS,
+    color: `hsl(${Math.floor(Math.random() * 10 + 180)}, 50%, 30%)`
   }
 }
 
